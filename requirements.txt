@@ -1,0 +1,7 @@
+requests
+python-dotenv
+tqdm
+
+# For --local mode (sentence-transformers)
+torch
+sentence-transformers
