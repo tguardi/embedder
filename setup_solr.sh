@@ -28,20 +28,44 @@ fi
 
 echo ""
 
+# Detect if running in SolrCloud or standalone mode
+echo "Detecting Solr mode..."
+if curl -s "$SOLR_URL/admin/collections?action=LIST" 2>&1 | grep -q "Solr instance is not running in SolrCloud mode"; then
+    echo "Running in standalone mode"
+    STANDALONE=true
+else
+    echo "Running in SolrCloud mode"
+    STANDALONE=false
+fi
+
+echo ""
+
 # Create parent collection (documents)
 echo "Creating 'documents' collection..."
-if curl -s "$SOLR_URL/admin/collections?action=CREATE&name=documents&numShards=1&replicationFactor=1" | grep -q '"status":0'; then
-    echo "✓ Collection 'documents' created"
+if [ "$STANDALONE" = true ]; then
+    # Standalone mode: create core
+    docker exec $(docker ps -q -f ancestor=solr:9.7) solr create_core -c documents 2>/dev/null && echo "✓ Core 'documents' created" || echo "  Core 'documents' may already exist (this is OK)"
 else
-    echo "  Collection 'documents' may already exist (this is OK)"
+    # SolrCloud mode: create collection
+    if curl -s "$SOLR_URL/admin/collections?action=CREATE&name=documents&numShards=1&replicationFactor=1" | grep -q '"status":0'; then
+        echo "✓ Collection 'documents' created"
+    else
+        echo "  Collection 'documents' may already exist (this is OK)"
+    fi
 fi
 
 # Create chunk collection (vectors)
 echo "Creating 'vectors' collection..."
-if curl -s "$SOLR_URL/admin/collections?action=CREATE&name=vectors&numShards=1&replicationFactor=1" | grep -q '"status":0'; then
-    echo "✓ Collection 'vectors' created"
+if [ "$STANDALONE" = true ]; then
+    # Standalone mode: create core (may already exist from docker-compose)
+    docker exec $(docker ps -q -f ancestor=solr:9.7) solr create_core -c vectors 2>/dev/null && echo "✓ Core 'vectors' created" || echo "  Core 'vectors' may already exist (this is OK)"
 else
-    echo "  Collection 'vectors' may already exist (this is OK)"
+    # SolrCloud mode: create collection
+    if curl -s "$SOLR_URL/admin/collections?action=CREATE&name=vectors&numShards=1&replicationFactor=1" | grep -q '"status":0'; then
+        echo "✓ Collection 'vectors' created"
+    else
+        echo "  Collection 'vectors' may already exist (this is OK)"
+    fi
 fi
 
 echo ""
@@ -87,6 +111,6 @@ echo ""
 echo "You can now run:"
 echo "  python batch_embedder.py test_documents/ --api-url YOUR_URL"
 echo ""
-echo "Check collections:"
-echo "  curl '$SOLR_URL/admin/collections?action=LIST'"
+echo "Check cores/collections:"
+echo "  curl '$SOLR_URL/admin/cores?action=STATUS'"
 echo ""
