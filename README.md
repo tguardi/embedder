@@ -134,7 +134,8 @@ python batch_embedder.py INPUT_DIR \
   --chunk-collection NAME \          # Chunk collection (default: vectors)
   --chunk-size 512 \                 # Characters per chunk
   --overlap 50 \                     # Overlap between chunks
-  --pattern "*.txt"                  # File pattern to match
+  --pattern "*.txt" \                # File pattern to match
+  --no-verify-ssl                    # Disable SSL cert verification (for self-signed certs)
 ```
 
 ---

@@ -165,7 +165,7 @@ def chunk_text(text: str, chunk_size: int, overlap: int) -> list[str]:
     return chunks
 
 
-def get_embedding(text: str, api_url: str) -> tuple[list[float], float]:
+def get_embedding(text: str, api_url: str, verify_ssl: bool = True) -> tuple[list[float], float]:
     """Get embedding for a single text. Returns (vector, elapsed_time)."""
     start = time.perf_counter()
     resp = requests.post(
@@ -173,6 +173,7 @@ def get_embedding(text: str, api_url: str) -> tuple[list[float], float]:
         headers={"Content-Type": "application/json"},
         json={"inputs": text},
         timeout=30,
+        verify=verify_ssl,
     )
     resp.raise_for_status()
     elapsed = time.perf_counter() - start
@@ -220,6 +221,7 @@ def process_document(
     chunk_collection: str,
     chunk_size: int,
     overlap: int,
+    verify_ssl: bool = True,
 ) -> dict:
     """Process a single document: chunk, embed, index. Returns stats."""
 
@@ -277,7 +279,7 @@ def process_document(
 
     log.info(f"│  Embedding {num_chunks} chunks...")
     for idx, chunk in enumerate(chunks):
-        vector, api_time = get_embedding(chunk, api_url)
+        vector, api_time = get_embedding(chunk, api_url, verify_ssl)
         total_api_time += api_time
 
         chunk_doc = {
@@ -327,7 +329,15 @@ def main():
     parser.add_argument("--chunk-size", type=int, default=512, help="Chunk size")
     parser.add_argument("--overlap", type=int, default=50, help="Chunk overlap")
     parser.add_argument("--pattern", default="*.txt", help="File pattern to match")
+    parser.add_argument("--no-verify-ssl", action="store_true", help="Disable SSL certificate verification for API calls")
     args = parser.parse_args()
+
+    verify_ssl = not args.no_verify_ssl
+
+    # Suppress SSL warnings if verification is disabled
+    if not verify_ssl:
+        import urllib3
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
     log.info("=" * 70)
     log.info("BATCH DOCUMENT EMBEDDER")
@@ -367,6 +377,7 @@ def main():
                 args.chunk_collection,
                 args.chunk_size,
                 args.overlap,
+                verify_ssl,
             )
             if stats["success"]:
                 analytics.add_document(stats)
