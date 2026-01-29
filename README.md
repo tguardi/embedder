@@ -15,7 +15,7 @@ Simple tool to process documents with your custom embedding API and index to Sol
 
 2. **Documents to process** (text files)
 
-3. **Solr 9** for storage (optional, can also output to JSON)
+3. **Solr 9** for storage
 
 ---
 
@@ -27,15 +27,23 @@ Simple tool to process documents with your custom embedding API and index to Sol
 pip install requests
 ```
 
-### 2. Start Solr (Optional)
+### 2. Start Solr
 
 ```bash
 docker-compose -f docker-compose.simple.yml up -d
 ```
 
-This starts Solr at http://localhost:8983
+### 3. Setup Solr Collections
 
-### 3. Create Test Documents
+```bash
+./setup_solr.sh
+```
+
+This creates:
+- `documents` collection (parent metadata)
+- `vectors` collection (chunks with embeddings)
+
+### 4. Create Test Documents
 
 ```bash
 ./setup_test_docs.sh
@@ -43,14 +51,14 @@ This starts Solr at http://localhost:8983
 
 Creates 5 sample documents in `test_documents/`
 
-### 4. Process Documents
+### 5. Process Documents
 
 ```bash
 python batch_embedder.py test_documents/ \
   --api-url "YOUR_API_URL_HERE"
 ```
 
-**That's it!** Your documents are chunked, embedded, and indexed to Solr with parent/child structure.
+**That's it!** Your documents are chunked, embedded, and indexed to Solr.
 
 ---
 
@@ -162,11 +170,31 @@ Stores chunks with embeddings:
 
 ---
 
+## Verify Results
+
+### Check parent documents:
+```bash
+curl "http://localhost:8983/solr/documents/select?q=*:*"
+```
+
+### Check chunks for a specific document:
+```bash
+curl "http://localhost:8983/solr/vectors/select?q=parent_id:doc1"
+```
+
+### Count total chunks:
+```bash
+curl "http://localhost:8983/solr/vectors/select?q=*:*&rows=0"
+```
+
+---
+
 ## Files
 
 | File | Purpose |
 |------|---------|
 | `batch_embedder.py` | **Main tool** - process documents with analytics |
+| `setup_solr.sh` | Create Solr collections with vector support |
 | `setup_test_docs.sh` | Create sample documents for testing |
 | `docker-compose.simple.yml` | Start Solr for local testing |
 | `QUICKSTART.md` | Detailed usage guide |
@@ -178,9 +206,10 @@ Stores chunks with embeddings:
 ## Quick Reference
 
 ```bash
-# Setup
+# Setup (one time)
 pip install requests
 docker-compose -f docker-compose.simple.yml up -d
+./setup_solr.sh
 ./setup_test_docs.sh
 
 # Run
