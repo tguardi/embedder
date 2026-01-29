@@ -87,6 +87,7 @@ class LocalEmbedder:
     def __init__(self, model_name: str, batch_size: int):
         from sentence_transformers import SentenceTransformer
         import torch
+        import os
 
         # Select best available device
         if torch.backends.mps.is_available():
@@ -96,7 +97,12 @@ class LocalEmbedder:
         else:
             device = "cpu"
 
-        log.info("Loading model %s on device: %s", model_name, device)
+        # Check if model_name is a local path
+        if os.path.exists(model_name):
+            log.info("Loading model from local path: %s on device: %s", model_name, device)
+        else:
+            log.info("Loading model %s from HuggingFace on device: %s", model_name, device)
+
         self.model = SentenceTransformer(model_name, device=device)
         self.batch_size = batch_size
         self.device = device

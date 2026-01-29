@@ -11,6 +11,7 @@ Python pipeline to migrate documents from Solr 7 to Solr 9 with vector embedding
 
 See [DECISIONS.md](DECISIONS.md) for detailed architecture decisions.
 See [AUTOSCALING.md](AUTOSCALING.md) for horizontal scaling with CPU instances.
+See [LOCAL_MODELS.md](LOCAL_MODELS.md) for offline/air-gapped deployments.
 
 ---
 
