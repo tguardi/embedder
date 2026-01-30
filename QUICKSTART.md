@@ -1,4 +1,4 @@
-# Quick Start - Simple Workflow
+# Quick Start Guide
 
 Text files → your custom API → Solr with parent/child structure
 
@@ -17,8 +17,8 @@ curl -X POST YOUR_API_URL \
 ## What You Need
 
 Get embeddings for multiple documents and index them to Solr with:
-- **Parent collection**: document metadata (filename, size, etc.)
-- **Child collection**: chunks with vectors
+- **Parent collection**: document metadata (filename, size, chunks)
+- **Child collection**: chunks with vectors and parent_id linkage
 
 ---
 
@@ -27,41 +27,66 @@ Get embeddings for multiple documents and index them to Solr with:
 ### 1. Install Dependencies
 
 ```bash
-pip install requests tqdm
+pip install requests
 ```
 
 ### 2. Start Solr
 
 ```bash
-# Start Solr with auto-created collections
 docker-compose -f docker-compose.simple.yml up -d
+```
 
-# Wait for startup (~10 seconds)
-docker-compose -f docker-compose.simple.yml logs -f
+Wait ~10 seconds, then verify:
+```bash
+curl http://localhost:8983/solr/admin/info/system
+```
+
+### 3. Setup Solr Collections
+
+**Default setup** (384-dim vectors, cosine similarity):
+```bash
+./setup_solr.sh
+```
+
+**Custom setup** (match your model):
+```bash
+VECTOR_FIELD=body-chunk-vector VECTOR_DIMS=768 SIMILARITY=cosine ./setup_solr.sh
 ```
 
 This creates:
-- Solr at http://localhost:8983
-- Collection "vectors" (auto-created)
+- `documents` collection (parent metadata)
+- `vectors` collection (chunks with embeddings)
+- Vector field with proper dimensions and similarity function
 
-### 3. Create Test Documents
+### 4. Create Test Documents
 
 ```bash
 ./setup_test_docs.sh
 ```
 
-Creates 5 sample documents in `test_documents/`
+Generates 3 realistic banking examination documents:
+- Supervisory Letter
+- CAMELS Summary
+- LFBO Rating Letter
 
 ---
 
 ## Run the Pipeline
 
+**Basic usage** (with default vector field):
+```bash
+python batch_embedder.py test_documents/ \
+  --api-url "YOUR_API_URL_HERE"
+```
+
+**With custom vector field** (matching your setup):
 ```bash
 python batch_embedder.py test_documents/ \
   --api-url "YOUR_API_URL_HERE" \
-  --solr-url "http://localhost:8983/solr" \
-  --parent-collection "documents" \
-  --chunk-collection "vectors"
+  --vector-field body-chunk-vector \
+  --vector-dims 768 \
+  --similarity cosine \
+  --no-verify-ssl
 ```
 
 ### What Happens:
@@ -72,51 +97,76 @@ python batch_embedder.py test_documents/ \
    - Chunks it (default 512 chars, 50 overlap)
    - Gets embeddings from your API
    - Indexes parent doc to "documents" collection
-   - Indexes chunks to "vectors" collection
-   - Logs progress
-3. **Commits** both collections
-4. **Shows summary**
+   - Indexes chunks with vectors to "vectors" collection
+   - Logs detailed per-document analytics
+3. **Shows comprehensive summary** with analytics
 
 ### Expected Output:
 
 ```
-============================================================
-Batch Document Embedder
-============================================================
+======================================================================
+BATCH DOCUMENT EMBEDDER
+======================================================================
 Input directory: test_documents/
 API URL: https://your-api.com/embed
 Solr: http://localhost:8983/solr
   Parent collection: documents
   Chunk collection: vectors
+  Vector field: body-chunk-vector
+  Vector dimensions: 768
+  Similarity function: cosine
 Chunk size: 512, overlap: 50
-============================================================
-Found 5 documents
+File pattern: *.txt
+======================================================================
 
-2025-01-29 10:00:00 [INFO] Processing document: doc1 (doc1.txt)
-2025-01-29 10:00:00 [INFO]   Document size: 412 characters
-2025-01-29 10:00:00 [INFO]   Generated 2 chunks
-2025-01-29 10:00:00 [INFO]   Indexed parent document
-2025-01-29 10:00:00 [INFO]   Indexed 2 chunks
-2025-01-29 10:00:00 [INFO]   ✓ doc1: 2 chunks
+Found 3 documents to process
 
-2025-01-29 10:00:01 [INFO] Processing document: doc2 (doc2.txt)
+┌─ Processing: doc1_supervisory_letter
+│  File: doc1_supervisory_letter.txt
+│  Size: 2,847 characters
+│  Chunks: 6
+│    Min/Avg/Max size: 462/474/512 chars
+│  ✓ Parent indexed (18ms)
+│  Embedding 6 chunks...
+│  ✓ 6 chunks indexed (145ms)
+│  API time: 1.23s (205ms avg)
+│  Total time: 1.39s (4.3 chunks/sec)
+└─ ✓ doc1_supervisory_letter
+
+┌─ Processing: doc2_camels_summary
 ...
 
-============================================================
-SUMMARY
-============================================================
-Documents processed: 5/5
-Total chunks: 12
-Total characters: 1,847
-Time: 3.2s
-Throughput: 4 chunks/sec
+======================================================================
+ANALYTICS SUMMARY
+======================================================================
+DOCUMENTS:
+  Total processed: 3
+  Total characters: 8,456
+  Average doc size: 2,819 chars
 
-Document breakdown:
-  doc1: 2 chunks (412 chars)
-  doc2: 3 chunks (524 chars)
-  doc3: 2 chunks (318 chars)
-  doc4: 3 chunks (445 chars)
-  doc5: 2 chunks (348 chars)
+CHUNKS:
+  Total chunks: 18
+  Average chunks/doc: 6.0
+  Average chunk size: 470 chars
+
+CHUNK SIZE DISTRIBUTION:
+   400- 499 chars:   12 ( 66.7%) ████████████████████████████████
+   500- 599 chars:    6 ( 33.3%) ████████████████
+
+API PERFORMANCE:
+  Total API calls: 18
+  Total API time: 3.67s
+  Average API latency: 204ms
+  API throughput: 4.9 calls/sec
+
+SOLR PERFORMANCE:
+  Total Solr time: 0.42s
+  Average Solr batch time: 140ms
+
+TIME BREAKDOWN:
+  API calls: 3.7s (82.4%)
+  Solr writes: 0.4s (9.0%)
+  Other (I/O, chunking): 0.4s (8.6%)
 ```
 
 ---
@@ -148,10 +198,16 @@ python batch_embedder.py INPUT_DIR \
   --solr-url URL \                   # Solr base URL (default: localhost:8983)
   --parent-collection NAME \         # Parent collection (default: documents)
   --chunk-collection NAME \          # Chunk collection (default: vectors)
+  --vector-field NAME \              # Vector field name (default: vector)
+  --vector-dims 384 \                # Vector dimensions (for logging only)
+  --similarity cosine \              # Similarity: cosine, dot_product, euclidean
   --chunk-size 512 \                 # Characters per chunk
   --overlap 50 \                     # Overlap between chunks
-  --pattern "*.txt"                  # File pattern to match
+  --pattern "*.txt" \                # File pattern to match
+  --no-verify-ssl                    # Disable SSL verification for self-signed certs
 ```
+
+**Important:** Match `--vector-field`, `--vector-dims`, and `--similarity` with your `setup_solr.sh` settings.
 
 ---
 
@@ -170,13 +226,16 @@ python batch_embedder.py INPUT_DIR \
 ### Chunk Collection (vectors)
 ```json
 {
-  "id": "doc1_chunk_0",
-  "parent_id": "doc1",
+  "id": "doc1_supervisory_letter_chunk_0",
+  "parent_id": "doc1_supervisory_letter",
   "chunk_index": 0,
-  "chunk_text": "Introduction to Machine Learning...",
-  "vector": [0.123, 0.456, 0.789, ...]
+  "chunk_text": "BOARD OF GOVERNORS OF THE FEDERAL RESERVE...",
+  "chunk_size": 512,
+  "body-chunk-vector": [0.123, 0.456, 0.789, ...]
 }
 ```
+
+Note: The vector field name (`body-chunk-vector` in this example) matches what you configured in `setup_solr.sh`.
 
 ---
 
@@ -212,36 +271,44 @@ python batch_embedder.py books/ \
 
 ## Troubleshooting
 
-**"No files found"**
+**SSL Certificate Verification Error**
 ```bash
-# Check directory
-ls test_documents/
-
-# Check pattern
-python batch_embedder.py test_documents/ --pattern "*.md"
+# Add --no-verify-ssl for self-signed certificates
+python batch_embedder.py test_documents/ \
+  --api-url "YOUR_API_URL" \
+  --no-verify-ssl
 ```
 
-**"Connection refused" (Solr)**
+**404 Error from Solr**
 ```bash
-# Check Solr is running
+# Make sure you ran setup_solr.sh first
+./setup_solr.sh
+```
+
+**Solr Not Running**
+```bash
+# Check Solr status
+docker-compose -f docker-compose.simple.yml ps
 curl http://localhost:8983/solr/admin/info/system
 
-# Restart Solr
+# Restart if needed
 docker-compose -f docker-compose.simple.yml restart
 ```
 
-**"Connection refused" (API)**
+**No Files Found**
 ```bash
-# Test your API manually first
-curl -X POST YOUR_API_URL \
-  -H "Content-Type: application/json" \
-  -d '{"inputs": "test"}'
+# Check directory and pattern
+ls test_documents/
+python batch_embedder.py test_documents/ --pattern "*.md"
 ```
 
-**"Collection not found"**
+**Wrong Vector Field Name**
 ```bash
-# Create collections manually (Solr admin UI or API)
-# Or let Solr auto-create on first write
+# Make sure --vector-field matches VECTOR_FIELD in setup
+VECTOR_FIELD=body-chunk-vector ./setup_solr.sh
+python batch_embedder.py test_documents/ \
+  --api-url YOUR_URL \
+  --vector-field body-chunk-vector
 ```
 
 ---
