@@ -4,9 +4,15 @@
 set -e
 
 SOLR_URL="${SOLR_URL:-http://localhost:8983/solr}"
+VECTOR_FIELD="${VECTOR_FIELD:-vector}"
+VECTOR_DIMS="${VECTOR_DIMS:-384}"
+SIMILARITY="${SIMILARITY:-cosine}"
 
 echo "Setting up Solr collections..."
 echo "Solr URL: $SOLR_URL"
+echo "Vector field: $VECTOR_FIELD"
+echo "Vector dimensions: $VECTOR_DIMS"
+echo "Similarity function: $SIMILARITY"
 echo ""
 
 # Wait for Solr to be ready
@@ -71,33 +77,33 @@ fi
 echo ""
 
 # Add vector field to vectors collection
-echo "Adding vector field to 'vectors' collection..."
+echo "Adding vector field '$VECTOR_FIELD' to 'vectors' collection..."
 
 # First, add the field type for dense vectors
 curl -X POST "$SOLR_URL/vectors/schema" \
   -H 'Content-type:application/json' \
-  -d '{
-    "add-field-type": {
-      "name": "knn_vector",
-      "class": "solr.DenseVectorField",
-      "vectorDimension": 384,
-      "similarityFunction": "cosine"
+  -d "{
+    \"add-field-type\": {
+      \"name\": \"knn_vector_${VECTOR_DIMS}\",
+      \"class\": \"solr.DenseVectorField\",
+      \"vectorDimension\": ${VECTOR_DIMS},
+      \"similarityFunction\": \"${SIMILARITY}\"
     }
-  }' 2>/dev/null
+  }" 2>/dev/null
 
 # Then add the vector field
 curl -X POST "$SOLR_URL/vectors/schema" \
   -H 'Content-type:application/json' \
-  -d '{
-    "add-field": {
-      "name": "vector",
-      "type": "knn_vector",
-      "indexed": true,
-      "stored": true
+  -d "{
+    \"add-field\": {
+      \"name\": \"${VECTOR_FIELD}\",
+      \"type\": \"knn_vector_${VECTOR_DIMS}\",
+      \"indexed\": true,
+      \"stored\": true
     }
-  }' 2>/dev/null
+  }" 2>/dev/null
 
-echo "✓ Vector field added"
+echo "✓ Vector field '${VECTOR_FIELD}' added (${VECTOR_DIMS} dims, ${SIMILARITY} similarity)"
 
 echo ""
 echo "================================================"
@@ -108,8 +114,13 @@ echo "Collections created:"
 echo "  - documents (parent metadata)"
 echo "  - vectors (chunks with embeddings)"
 echo ""
+echo "Vector configuration:"
+echo "  - Field name: $VECTOR_FIELD"
+echo "  - Dimensions: $VECTOR_DIMS"
+echo "  - Similarity: $SIMILARITY"
+echo ""
 echo "You can now run:"
-echo "  python batch_embedder.py test_documents/ --api-url YOUR_URL"
+echo "  python batch_embedder.py test_documents/ --api-url YOUR_URL --vector-field $VECTOR_FIELD"
 echo ""
 echo "Check cores/collections:"
 echo "  curl '$SOLR_URL/admin/cores?action=STATUS'"

@@ -222,6 +222,7 @@ def process_document(
     chunk_size: int,
     overlap: int,
     verify_ssl: bool = True,
+    vector_field: str = "vector",
 ) -> dict:
     """Process a single document: chunk, embed, index. Returns stats."""
 
@@ -288,7 +289,7 @@ def process_document(
             "chunk_index": idx,
             "chunk_text": chunk,
             "chunk_size": len(chunk),
-            "vector": vector,
+            vector_field: vector,
         }
         chunk_docs.append(chunk_doc)
 
@@ -329,6 +330,9 @@ def main():
     parser.add_argument("--chunk-size", type=int, default=512, help="Chunk size")
     parser.add_argument("--overlap", type=int, default=50, help="Chunk overlap")
     parser.add_argument("--pattern", default="*.txt", help="File pattern to match")
+    parser.add_argument("--vector-field", default="vector", help="Name of vector field in Solr")
+    parser.add_argument("--vector-dims", type=int, help="Vector dimensions (for logging)")
+    parser.add_argument("--similarity", default="cosine", choices=["cosine", "dot_product", "euclidean"], help="Similarity function")
     parser.add_argument("--no-verify-ssl", action="store_true", help="Disable SSL certificate verification for API calls")
     args = parser.parse_args()
 
@@ -347,6 +351,10 @@ def main():
     log.info(f"Solr: {args.solr_url}")
     log.info(f"  Parent collection: {args.parent_collection}")
     log.info(f"  Chunk collection: {args.chunk_collection}")
+    log.info(f"  Vector field: {args.vector_field}")
+    if args.vector_dims:
+        log.info(f"  Vector dimensions: {args.vector_dims}")
+    log.info(f"  Similarity function: {args.similarity}")
     log.info(f"Chunk size: {args.chunk_size}, overlap: {args.overlap}")
     log.info(f"File pattern: {args.pattern}")
     log.info("=" * 70)
@@ -378,6 +386,7 @@ def main():
                 args.chunk_size,
                 args.overlap,
                 verify_ssl,
+                args.vector_field,
             )
             if stats["success"]:
                 analytics.add_document(stats)

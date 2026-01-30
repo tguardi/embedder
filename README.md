@@ -36,12 +36,22 @@ docker-compose -f docker-compose.simple.yml up -d
 ### 3. Setup Solr Collections
 
 ```bash
+# Default: 384-dimensional vectors with cosine similarity
 ./setup_solr.sh
+
+# Or customize for your model:
+VECTOR_FIELD=embedding_vector VECTOR_DIMS=768 SIMILARITY=cosine ./setup_solr.sh
 ```
 
 This creates:
 - `documents` collection (parent metadata)
 - `vectors` collection (chunks with embeddings)
+- Vector field with specified dimensions and similarity function
+
+**Environment Variables:**
+- `VECTOR_FIELD` - Field name for vectors (default: `vector`)
+- `VECTOR_DIMS` - Vector dimensions (default: `384`)
+- `SIMILARITY` - Similarity function: `cosine`, `dot_product`, or `euclidean` (default: `cosine`)
 
 ### 4. Create Test Documents
 
@@ -132,11 +142,16 @@ python batch_embedder.py INPUT_DIR \
   --solr-url URL \                   # Solr base URL (default: localhost:8983)
   --parent-collection NAME \         # Parent collection (default: documents)
   --chunk-collection NAME \          # Chunk collection (default: vectors)
+  --vector-field NAME \              # Vector field name (default: vector)
+  --vector-dims 384 \                # Vector dimensions (for logging only)
+  --similarity cosine \              # Similarity: cosine, dot_product, euclidean
   --chunk-size 512 \                 # Characters per chunk
   --overlap 50 \                     # Overlap between chunks
   --pattern "*.txt" \                # File pattern to match
   --no-verify-ssl                    # Disable SSL cert verification (for self-signed certs)
 ```
+
+**Important:** Make sure the `--vector-field`, `--vector-dims`, and `--similarity` match what you used in `setup_solr.sh`.
 
 ---
 
