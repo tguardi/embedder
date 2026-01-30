@@ -57,11 +57,25 @@ This creates:
 
 ### 4. Create Test Documents
 
+**For quick testing** (3 documents):
 ```bash
 ./setup_test_docs.sh
 ```
 
-Generates 3 realistic banking examination documents in `test_documents/`:
+**For load testing** (10,000 documents):
+```bash
+python generate_batch.py --count 10000 --output batch_documents/
+```
+
+**Batch generation options:**
+```bash
+python generate_batch.py \
+  --count 10000 \                    # Number of documents
+  --output batch_documents/ \        # Output directory
+  --type all                         # all, supervisory, camels, or lfbo
+```
+
+Generates realistic banking examination documents:
 - **Supervisory Letter** - Federal Reserve supervisory concerns and findings
 - **CAMELS Summary** - Comprehensive examination ratings and financial metrics
 - **LFBO Rating Letter** - Large Financial Institution rating communication
