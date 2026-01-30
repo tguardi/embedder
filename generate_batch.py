@@ -9,7 +9,7 @@ Usage:
 import argparse
 import random
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from standalone_text_generator import (
     BankProfile, BusinessModel, CAMELSExamination,
     ExaminationFinding, RiskArea, FindingType, Severity,
@@ -138,8 +138,8 @@ def generate_random_examination(bank: BankProfile) -> CAMELSExamination:
         )
 
     exam_end = datetime.now()
-    exam_start = datetime(exam_end.year, exam_end.month - 2 if exam_end.month > 2 else exam_end.month + 10, exam_end.day)
-    report_date = datetime(exam_end.year, exam_end.month + 1 if exam_end.month < 12 else 1, exam_end.day)
+    exam_start = exam_end - timedelta(days=45)  # 45 days ago
+    report_date = exam_end + timedelta(days=30)  # 30 days from now
 
     findings = generate_random_findings()
 
