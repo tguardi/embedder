@@ -1,0 +1,283 @@
+
+BOARD OF GOVERNORS
+OF THE
+FEDERAL RESERVE SYSTEM
+WASHINGTON, D.C. 20551
+
+DIVISION OF SUPERVISION AND REGULATION
+
+March 01, 2026
+
+CONFIDENTIAL SUPERVISORY INFORMATION
+
+Board of Directors
+First National Bank of Commerce
+San Francisco, CA
+
+Dear Members of the Board:
+
+This letter summarizes supervisory concerns identified during the examination of First National Bank of Commerce
+(RSSD 1234567) conducted by the Federal Reserve Bank as of January 30, 2026.
+The examination was conducted in accordance with Federal Reserve System policies and procedures and covered the period
+from December 16, 2025 through January 30, 2026.
+
+EXECUTIVE SUMMARY
+
+The Bank operates as a commercial banking institution with total assets of $2,500.0 million
+as of the examination date, representing +11.1% growth since the prior examination.
+The Bank was chartered on March 15, 1985 and operates 7 branches in
+San Francisco, CA and surrounding communities.
+
+The examination scope included a comprehensive review of the Bank's financial condition, risk management practices, and compliance
+with applicable laws and regulations. Examiners conducted detailed assessments of capital adequacy, asset quality, management capabilities,
+earnings performance, liquidity position, and sensitivity to market risk. The examination team reviewed approximately 35.5%
+of the Bank's loan portfolio, totaling $679.9 million, and conducted interviews with
+16 members of the Board, senior management, and key personnel.
+
+The examination reviewed the Bank's Liquidity Risk Management, Credit Risk Management, BSA/AML Compliance
+ and identified 3 matters
+requiring immediate attention.
+These matters represent significant concerns regarding the Banks safety and soundness
+and must be addressed in accordance with the timelines specified in this letter.
+
+EXAMINATION SCOPE AND METHODOLOGY
+
+The examination team consisted of 6 examiners and specialists who spent 44 days on-site and conducted
+additional off-site analysis. The examination included the following key activities:
+
+- Review of board and committee meeting minutes from the past 23 months
+- Analysis of the Bank's strategic plan, budget, and financial projections
+- Assessment of the loan portfolio through statistical sampling and targeted transaction testing
+- Evaluation of the Bank's internal audit function and independent risk review processes
+- Testing of information technology systems, cybersecurity controls, and business continuity planning
+- Review of compliance management systems and consumer protection practices
+- Assessment of vendor management and third-party risk management frameworks
+- Evaluation of the Bank's capital planning processes and stress testing capabilities
+
+The examination was led by Jennifer Jones, Examiner-in-Charge, with support from specialists in credit risk,
+operational risk, compliance, and information technology. The examination findings and conclusions were discussed with the
+Board of Directors and senior management during the exit meeting on January 30, 2026.
+
+
+================================================================================
+FINDING #1: Weaknesses in Contingency Funding Plan
+================================================================================
+
+Type: Matter Requiring Immediate Attention
+Severity: High
+Risk Area: Liquidity Risk Management
+
+Description:
+The Bank's liquidity risk management framework has material weaknesses.
+Internal liquidity stress testing does not adequately capture the Bank's funding vulnerabilities,
+particularly related to the concentration of uninsured deposits (22% of total deposits). The Bank's
+contingency funding plan has not been updated since 2019 and does not reflect current balance sheet composition.
+
+Our examination included a thorough review of the Bank's asset-liability management practices, funding strategies, and
+liquidity risk monitoring systems. We identified significant concerns regarding the Bank's reliance on volatile funding sources,
+including brokered deposits totaling $417.2M (21% of total deposits) and borrowings from the Federal
+Home Loan Bank of $352.6M. The Bank's internal liquidity stress scenarios do not adequately consider the potential
+for concurrent deposit outflows and reduced borrowing capacity during stressed conditions.
+
+Additionally, the Bank's liquidity buffer consists primarily of investment securities with embedded interest rate risk,
+and the contingent borrowing capacity has not been validated through test transactions in over 17 months. The funds
+management committee meets only quarterly, which is insufficient given the current volatility in funding markets and the
+Bank's aggressive growth strategy. Management information systems do not provide real-time visibility into deposit flows
+or concentration metrics, limiting the Bank's ability to respond quickly to emerging liquidity pressures.
+
+Impact:
+These deficiencies present significant risk to the Bank's safety and soundness and require prompt corrective action.
+
+Required Action:
+The Board of Directors is required to immediately ensure that management develops and implements
+a comprehensive remediation plan to address the deficiencies noted above. This plan must include specific
+milestones, responsible parties, and completion dates. A written response must be submitted to the Federal
+Reserve within 30 days of this letter.
+
+Context:
+- Composite Rating: 3
+- Exam Loan Sample: 35.5% of portfolio reviewed
+- Total Assets: $2,500.0 million; Business Model: Commercial Banking
+- Expected Remediation Timeline: 45 days
+- Citations: SR 10-6 (Liquidity Risk Management); 12 CFR 252 Subpart F
+
+================================================================================
+FINDING #2: Inadequate Loan Review Function
+================================================================================
+
+Type: Matter Requiring Attention
+Severity: Moderate
+Risk Area: Credit Risk Management
+
+Description:
+During the examination, we identified deficiencies in the Bank's credit risk management processes.
+Specifically, the Bank's loan review function lacks independence and adequate staffing to effectively
+identify emerging credit quality issues. Our sample review revealed 8 loans totaling $97.8M
+that were inadequately risk-rated, with 16% requiring downgrade to classified status.
+
+The examination team conducted a comprehensive review of the Bank's lending portfolio, including commercial real estate,
+commercial and industrial, and consumer loans. We analyzed 68 loan relationships representing approximately
+45% of the total loan portfolio. Our analysis revealed systematic weaknesses in the loan origination process,
+particularly in the areas of financial statement analysis, collateral valuation, and covenant monitoring.
+
+Furthermore, the Bank's credit policy lacks specific guidance on acceptable debt service coverage ratios, loan-to-value limits,
+and industry concentration thresholds. The credit administration function does not have adequate systems to track and report
+credit exceptions, resulting in 43 instances where loans were approved outside of established credit parameters
+without proper exception documentation or board approval. These weaknesses increase the Bank's exposure to credit losses and
+diminish the Board's ability to provide effective oversight of credit risk.
+
+Impact:
+These deficiencies present elevated risk to the Bank and could adversely impact financial condition if left unaddressed.
+
+Required Action:
+The Board of Directors is required to ensure that management develops and implements an enhanced
+credit risk management framework that addresses the deficiencies noted above. A detailed corrective
+action plan should be submitted to the Federal Reserve within 90 days, with full
+implementation expected within 90 days of this letter.
+
+Context:
+- Composite Rating: 3
+- Exam Loan Sample: 35.5% of portfolio reviewed
+- Total Assets: $2,500.0 million; Business Model: Commercial Banking
+- Expected Remediation Timeline: 90 days
+- Citations: SR 07-1 (Interagency Guidance on Concentrations in CRE); 12 CFR 365
+
+================================================================================
+FINDING #3: BSA/AML Compliance Deficiencies
+================================================================================
+
+Type: Matter Requiring Attention
+Severity: Moderate
+Risk Area: BSA/AML Compliance
+
+Description:
+The Bank's BSA/AML compliance program has material deficiencies. Customer due
+diligence procedures are inadequate for 20% of higher-risk customer relationships reviewed. The suspicious
+activity monitoring system generated 6 alerts that were inadequately investigated.
+
+The examination included a comprehensive review of the Bank's BSA/AML compliance program, including customer due diligence,
+suspicious activity monitoring, currency transaction reporting, and OFAC compliance. We identified systemic deficiencies in
+the Bank's ability to identify, monitor, and report potentially suspicious activity. The Bank processed 4008 alerts
+during the review period, but only filed 24 Suspicious Activity Reports, raising concerns about the adequacy of
+alert disposition and investigation processes.
+
+The Bank's customer risk rating methodology does not adequately consider all relevant risk factors, including geographic risk,
+product/service risk, and customer behavior. We identified 44 high-risk customer relationships that lacked
+enhanced due diligence documentation, including 6 politically exposed persons and 9 money service businesses.
+Transaction monitoring scenarios have not been validated or tuned in over 48 months, and several scenarios
+are generating excessive false positive alerts without proper management review or optimization.
+
+Additionally, the BSA Officer position has experienced 3 turnovers in the past 3 years, and
+current BSA staffing levels are inadequate given the Bank's risk profile and transaction volumes. Independent testing of the
+BSA/AML program identified 19 issues in the prior examination cycle, and management has not fully addressed
+these deficiencies. The Board receives limited information regarding BSA/AML compliance, and board members demonstrated
+limited understanding of the Bank's BSA/AML risk exposure during examination interviews.
+
+Impact:
+These deficiencies present elevated risk to the Bank and could adversely impact financial condition if left unaddressed.
+
+Required Action:
+The Board of Directors is required to ensure that management develops and implements an enhanced
+bsa/aml compliance framework that addresses the deficiencies noted above. A detailed corrective
+action plan should be submitted to the Federal Reserve within 90 days, with full
+implementation expected within 120 days of this letter.
+
+Context:
+- Composite Rating: 3
+- Exam Loan Sample: 35.5% of portfolio reviewed
+- Total Assets: $2,500.0 million; Business Model: Commercial Banking
+- Expected Remediation Timeline: 120 days
+- Citations: BSA (31 CFR Chapter X); FFIEC BSA/AML Manual
+
+================================================================================
+APPENDIX I: MATTERS REQUIRING IMMEDIATE ATTENTION (MRIAs)
+================================================================================
+
+MRIA #1: Weaknesses in Contingency Funding Plan
+
+Issue: The Bank's liquidity risk management framework has material weaknesses.
+Internal liquidity stress testing does not adequately capture the Bank's funding vulnerabilities,
+particularly related to the concentration of uninsured deposits (22% of total deposits). The Bank's
+contingency funding plan has not been updated since 2019 and does not reflect current balance sheet composition.
+
+Our examination included a thorough review of the Bank's asset-liability management practices, funding strategies, and
+liquidity risk monitoring systems. We identified significant concerns regarding the Bank's reliance on volatile funding sources,
+including brokered deposits totaling $417.2M (21% of total deposits) and borrowings from the Federal
+Home Loan Bank of $352.6M. The Bank's internal liquidity stress scenarios do not adequately consider the potential
+for concurrent deposit outflows and reduced borrowing capacity during stressed conditions.
+
+Additionally, the Bank's liquidity buffer consists primarily of investment securities with embedded interest rate risk,
+and the contingent borrowing capacity has not been validated through test transactions in over 17 months. The funds
+management committee meets only quarterly, which is insufficient given the current volatility in funding markets and the
+Bank's aggressive growth strategy. Management information systems do not provide real-time visibility into deposit flows
+or concentration metrics, limiting the Bank's ability to respond quickly to emerging liquidity pressures.
+Required Action: Submit a remediation plan by April 15, 2026 that includes milestones, responsible parties, and board approval steps.
+
+
+================================================================================
+
+The Board of Directors should review this letter and provide a written response addressing the
+findings noted above. Please contact Jennifer Jones, the examiner-in-charge,
+at the Federal Reserve Bank with any questions.
+
+CONCLUSION AND NEXT STEPS
+
+The Board of Directors is responsible for ensuring that management develops and implements comprehensive corrective action
+plans to address all matters identified in this letter. Each corrective action plan must include specific action steps,
+responsible parties, implementation timelines, and metrics for measuring progress and effectiveness.
+
+The Bank is required to submit written responses to the Federal Reserve within 30 days of the date
+of this letter, describing the corrective actions that have been or will be taken to address each matter. The response should
+include detailed action plans with milestones and expected completion dates. Management should provide regular progress updates
+to the Board of Directors, and the Board should ensure appropriate oversight of remediation efforts.
+
+The Federal Reserve will conduct follow-up examinations and targeted reviews to assess the Bank's progress in addressing the
+matters identified in this letter. Failure to take timely and effective corrective action may result in additional supervisory
+measures, including formal enforcement actions. The Board and senior management should contact the Federal Reserve if they have
+questions regarding the matters identified in this letter or require clarification regarding supervisory expectations.
+
+BOARD RESPONSIBILITIES
+
+The Board of Directors has ultimate responsibility for ensuring the safe and sound operation of the Bank. The Board should:
+
+- Review and discuss this letter at the next regularly scheduled Board meeting
+- Ensure that management develops comprehensive corrective action plans for each matter
+- Establish clear accountability and assign responsibility for remediation efforts
+- Monitor progress regularly through detailed management reporting
+- Ensure adequate resources are allocated to address identified deficiencies
+- Consider engaging external expertise if internal capabilities are insufficient
+- Communicate regularly with the Federal Reserve regarding remediation progress
+
+The Federal Reserve expects the Board to maintain active oversight of the Bank's risk profile and to ensure that management
+operates the Bank in a safe and sound manner in compliance with applicable laws and regulations. The Board should ensure that
+the Bank has appropriate risk management frameworks, internal controls, and governance structures to identify, measure, monitor,
+and control risks across all material business activities.
+
+REGULATORY EXPECTATIONS
+
+The Federal Reserve emphasizes the importance of timely and effective remediation of the matters identified in this letter.
+The Bank should prioritize remediation efforts based on the severity and potential impact of each matter, with immediate attention
+to matters requiring immediate attention. Management should provide the Board with regular updates on remediation progress, including
+status updates on action plan milestones, identification of any impediments to timely completion, and requests for additional resources
+if needed.
+
+The Bank should ensure that all corrective actions are sustainable and that appropriate policies, procedures, systems, and controls
+are in place to prevent recurrence of similar deficiencies. The Federal Reserve will evaluate the adequacy of the Bank's corrective
+actions through ongoing supervision and follow-up examinations.
+
+This letter is considered confidential supervisory information and should be maintained in the Bank's examination records. Distribution
+should be limited to the Board of Directors, senior management, and other individuals with a need to know. Unauthorized disclosure
+of confidential supervisory information may result in regulatory sanctions.
+
+If you have any questions regarding this letter or the matters identified herein, please contact Jennifer Jones at
+the Federal Reserve Bank.
+
+Sincerely,
+
+Jennifer Jones
+Senior Supervisory Officer
+Federal Reserve Bank
+
+CC: First National Bank of Commerce Management
+    Federal Reserve Bank Examination File
+    Federal Reserve Board of Governors

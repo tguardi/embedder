@@ -1,0 +1,182 @@
+
+================================================================================
+SUMMARY OF EXAMINATION RATINGS
+================================================================================
+
+Institution: First National Bank of Commerce
+RSSD: 1234567
+Total Assets: $2,500.0 million
+Location: San Francisco, CA
+
+Examination Period: December 16, 2025 to January 30, 2026
+Report Date: March 01, 2026
+Examination Type: Full-Scope Safety and Soundness
+
+UNIFORM FINANCIAL INSTITUTIONS RATING SYSTEM (CAMELS)
+
+Current Ratings:
+    Composite:          3
+    Capital:            2
+    Asset Quality:      3
+    Management:         3
+    Earnings:           2
+    Liquidity:          3
+    Sensitivity:        2
+
+Rating Definitions:
+    1 = Strong - Highest rating indicating strong performance and risk management
+    2 = Satisfactory - Satisfactory performance and risk management
+    3 = Fair - Financial condition or risk management has weaknesses
+    4 = Marginal - Serious financial weaknesses or unsatisfactory risk management
+    5 = Unsatisfactory - Critical financial weaknesses and inadequate risk management
+
+FINANCIAL PERFORMANCE SUMMARY
+
+Capital Ratios:
+    Tier 1 Leverage Ratio:          8.72%
+    Total Risk-Based Capital:       11.95%
+
+Asset Quality:
+    NPAs / Total Assets:            1.96%
+
+Earnings:
+    Return on Assets (ROA):         1.18%
+    Return on Equity (ROE):         13.36%
+    Net Interest Margin (NIM):      4.27%
+    Efficiency Ratio:               56.27%
+
+Liquidity:
+    Loan to Deposit Ratio:          86.14%
+
+EXAMINATION SCOPE
+
+This was a full-scope safety and soundness examination of First National Bank of Commerce.
+Examination procedures included a review of 35.5% of the commercial loan portfolio,
+assessment of risk management practices across all major risk areas, evaluation of internal controls,
+and review of compliance with applicable laws and regulations.
+
+DETAILED COMPONENT ANALYSIS
+
+CAPITAL (C) - Rating: 2
+
+The Capital component assesses the level and quality of capital and the overall financial condition of the institution.
+The Bank's Tier 1 Leverage Ratio of 8.72% and Total Risk-Based Capital ratio of 11.95%
+exceed well-capitalized standards.
+Capital planning processes are adequate and stress testing
+capabilities align with supervisory expectations for an institution
+of this size and complexity.
+
+The Bank's capital position is adequate
+relative to the Bank's risk profile. The Bank maintains diverse capital raising
+capabilities through multiple channels including retained earnings
+, equity issuance, and subordinated debt. The capital planning process
+incorporates comprehensive stress testing that
+adequately considers the Bank's key risks and vulnerabilities.
+
+ASSET QUALITY (A) - Rating: 3
+
+The Asset Quality component reflects the quantity of existing and potential credit risk associated with the loan and investment
+portfolios. The Bank's nonperforming assets to total assets ratio of 1.96% is acceptable
+compared to peer institutions of similar size and business model.
+
+Credit risk management practices are adequate
+with acceptable underwriting
+standards, loan review processes, and portfolio monitoring systems. The loan portfolio composition reflects
+elevated concentration risk in commercial banking lending.
+Management should enhance effective problem loan identification and
+workout processes.
+
+The Allowance for Loan and Lease Losses (ALLL) methodology is adequate but requires improvement,
+incorporating limited quantitative and qualitative risk factors.
+The current ALLL level of $30.00 million (1.01% of loans) is
+marginally adequate
+to absorb expected credit losses based on current portfolio risk characteristics.
+
+MANAGEMENT (M) - Rating: 3
+
+The Management component reflects the capability of the board of directors and management to identify, measure, monitor, and
+control the risks of the institution's activities. Board and management oversight is satisfactory,
+with adequate strategic
+planning, risk management frameworks, and internal controls.
+
+The Board of Directors demonstrates adequate
+understanding of the Bank's risk profile and provides satisfactory
+oversight through adequately structured
+board committees. Senior management possesses sufficient
+industry expertise and generally demonstrates
+sound judgment in managing the Bank's operations.
+
+Risk management information systems provide adequate
+data to support decision-making. Internal audit and compliance functions are generally adequate but require enhancement.
+
+EARNINGS (E) - Rating: 2
+
+The Earnings component measures current period earnings performance, sustainability of earnings, and the adequacy of provisions
+and reserves. The Bank's ROA of 1.18% and ROE of 13.36% are strong
+relative to peers and demonstrate solid
+earnings capacity to support operations and capital growth.
+
+The Net Interest Margin of 4.27% reflects effective
+spread management in the current interest rate environment. Noninterest income sources are diverse,
+with multiple fee-generating business lines. The efficiency ratio of 56.27%
+indicates strong expense control
+relative to revenue generation.
+
+Earnings consistently exceed
+the Bank's internal performance targets and strategic objectives. Provision expense is appropriate
+relative to asset quality trends and portfolio growth. Earnings sustainability is strong
+considering competitive pressures, interest rate risks, and the Bank's strategic direction.
+
+LIQUIDITY (L) - Rating: 3
+
+The Liquidity component reflects the adequacy of the institution's current and prospective sources and uses of funds.
+The Bank's loan-to-deposit ratio of 86.14% is moderate
+relative to peers and provides adequate
+liquidity capacity for balance sheet growth or funding stress.
+
+Liquidity risk management processes are satisfactory,
+with adequate stress testing,
+contingency funding planning, and liquidity buffer management. The Bank maintains adequate
+funding sources through core deposits, wholesale funding, and available borrowing lines.
+
+The liquidity position is satisfactory,
+with adequate unencumbered
+liquid assets available to meet cash flow needs. Deposit composition reflects moderate
+reliance on rate-sensitive and uninsured deposits, which moderately increases
+funding volatility risk.
+
+SENSITIVITY TO MARKET RISK (S) - Rating: 2
+
+The Sensitivity component reflects the degree to which changes in interest rates, foreign exchange rates, commodity prices, or
+equity prices can adversely affect earnings or capital. Interest rate risk is well-managed,
+with comprehensive measurement
+systems and effective
+hedging strategies to mitigate exposure.
+
+Asset-liability management processes effectively identify and control
+interest rate risk arising from mismatches in repricing characteristics of assets and liabilities. The Bank's interest rate risk
+position is conservative,
+with earnings and capital well-protected
+to adverse interest rate movements.
+
+MATTERS REQUIRING ATTENTION
+
+The examination identified 3 supervisory matters
+requiring attention, including 1 matter
+requiring immediate attention (MRIA) and 2 matters
+requiring attention (MRA).
+
+Detailed findings and required corrective actions are provided in the separate supervisory letter dated
+March 01, 2026. The Bank must develop and implement comprehensive remediation plans to address
+all identified matters within the specified timeframes. The Federal Reserve will conduct follow-up examinations to assess
+progress in addressing these supervisory concerns.
+
+CONCLUSION
+
+This CAMELS rating reflects the Bank's financial condition, risk management practices, and compliance with applicable laws and
+regulations as of January 30, 2026. The Bank should continue to enhance
+its financial condition and risk management frameworks to ensure safe and sound operations. The Board and management should
+address all supervisory matters in a timely and effective manner and should contact the Federal Reserve with any questions
+regarding supervisory expectations or examination findings.
+
+================================================================================

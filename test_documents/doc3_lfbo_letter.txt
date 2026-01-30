@@ -1,0 +1,66 @@
+BOARD OF GOVERNORS
+OF THE
+FEDERAL RESERVE SYSTEM
+
+LFBO DEDICATED SUPERVISORY TEAM LEAD
+LARGE INSTITUTIONS SUPERVISION GROUP
+SUPERVISION + CREDIT
+
+March 01, 2026
+
+RESTRICTED FR // EXTERNAL
+TRANSMITTED BY SECURE EMAIL
+
+Board of Directors
+First National Bank of Commerce
+7206 Market Street
+San Francisco, CA
+
+Subject: LFBO Component Rating Communication
+
+Dear Board Members:
+
+This letter conveys the Large Financial Institution (LFI) rating conclusions for First National Bank of Commerce (RSSD 1234567).
+The Federal Reserve's assessment reflects the body of horizontal, firm-specific, and continuous monitoring work,
+and is previously communicated as Broadly Meets Expectations on June 15, 2022.
+
+LFI Rating Summary
+Component                        | Previous Rating                | Current Rating                
+--------------------------------------------------------------------------------------------------
+Capital Planning & Positions     | Broadly Meets Expectations / 06/15/2022 | Broadly Meets Expectations / 03/01/2026
+Liquidity Risk Management        | Broadly Meets Expectations / 06/15/2022 | Conditionally Meets Expectations / 03/01/2026
+Governance & Controls            | Broadly Meets Expectations / 06/15/2022 | Conditionally Meets Expectations / 03/01/2026
+
+Supervisory Assessment
+
+Capital Planning & Positions remain broadly meets expectations.
+The Tier 1 leverage ratio is 8.7%.
+The total risk-based capital ratio is 11.9%.
+
+Liquidity Risk Management is conditionally meets expectations.
+The loan-to-deposit ratio is 86.1%.
+Stress testing discussions highlighted depositor behavior sensitivities and contingency funding assumptions requiring continued refinement.
+
+Governance & Controls are conditionally meets expectations, reflecting the linkage between risk management, earnings, and asset quality.
+Nonperforming assets measure 2.0% of total assets, within peer tolerances;
+return on assets of 1.18% supports capital generation.
+
+Supervisory Expectations
+
+The following actions are required to address outstanding supervisory concerns:
+• Submit a detailed plan addressing Weaknesses in Contingency Funding Plan within 45 days.
+• Provide a detailed plan addressing BSA/AML Compliance Deficiencies within 90 days.
+• Provide a detailed plan addressing Inadequate Loan Review Function within 90 days.
+
+• Provide quarterly updates describing progress against capital planning milestones and liquidity monetization triggers.
+
+The Federal Reserve will monitor remediation through ongoing supervision and targeted work. Please engage your Dedicated Supervisory
+Team Lead if clarification is required.
+
+Sincerely,
+
+Jennifer Jones
+LFBO Dedicated Supervisory Team Lead
+Large Institutions Supervision Group
+
+CONFIDENTIAL SUPERVISORY INFORMATION
