@@ -39,8 +39,8 @@ docker-compose -f docker-compose.simple.yml up -d
 # Default: 384-dimensional vectors with cosine similarity
 ./setup_solr.sh
 
-# Or customize for your model:
-VECTOR_FIELD=embedding_vector VECTOR_DIMS=768 SIMILARITY=cosine ./setup_solr.sh
+# Or customize for your model and field name:
+VECTOR_FIELD=body-chunk-vector VECTOR_DIMS=768 SIMILARITY=cosine ./setup_solr.sh
 ```
 
 This creates:
@@ -50,7 +50,9 @@ This creates:
 
 **Environment Variables:**
 - `VECTOR_FIELD` - Field name for vectors (default: `vector`)
+  - Example: `body-chunk-vector`, `embedding_vector`, `vec_field`
 - `VECTOR_DIMS` - Vector dimensions (default: `384`)
+  - Common values: `384` (MiniLM), `768` (BERT), `1536` (OpenAI)
 - `SIMILARITY` - Similarity function: `cosine`, `dot_product`, or `euclidean` (default: `cosine`)
 
 ### 4. Create Test Documents
@@ -64,9 +66,20 @@ Creates 5 sample documents in `test_documents/`
 ### 5. Process Documents
 
 ```bash
+# Using default field name (vector)
 python batch_embedder.py test_documents/ \
   --api-url "YOUR_API_URL_HERE"
+
+# Or match your custom field name from setup:
+python batch_embedder.py test_documents/ \
+  --api-url "YOUR_API_URL_HERE" \
+  --vector-field body-chunk-vector \
+  --vector-dims 768 \
+  --similarity cosine \
+  --no-verify-ssl
 ```
+
+**Important:** The `--vector-field` must match the `VECTOR_FIELD` you used in `setup_solr.sh`
 
 **That's it!** Your documents are chunked, embedded, and indexed to Solr.
 
