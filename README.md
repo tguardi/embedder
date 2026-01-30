@@ -94,8 +94,8 @@ python batch_embedder.py test_documents/ \
 ```bash
 python batch_embedder.py batch_documents/ \
   --api-url "YOUR_API_URL_HERE" \
-  --vector-field body-chunk-vector \
-  --vector-dims 768 \
+  --vector-field vector \
+  --vector-dims 384 \
   --similarity cosine \
   --workers 10 \
   --no-verify-ssl
