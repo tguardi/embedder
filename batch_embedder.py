@@ -337,6 +337,8 @@ def main():
     parser.add_argument("--similarity", default="cosine", choices=["cosine", "dot_product", "euclidean"], help="Similarity function")
     parser.add_argument("--no-verify-ssl", action="store_true", help="Disable SSL certificate verification for API calls")
     parser.add_argument("--workers", type=int, default=1, help="Number of parallel workers (default: 1 for sequential)")
+    parser.add_argument("--shard-id", type=int, help="Shard ID for distributed processing (0-based)")
+    parser.add_argument("--shard-count", type=int, help="Total number of shards")
     args = parser.parse_args()
 
     verify_ssl = not args.no_verify_ssl
@@ -365,13 +367,30 @@ def main():
 
     # Find all documents
     input_path = Path(args.input_dir)
-    doc_files = sorted(input_path.glob(args.pattern))
+    all_files = sorted(input_path.glob(args.pattern))
 
-    if not doc_files:
+    if not all_files:
         log.error(f"No files matching '{args.pattern}' found in {args.input_dir}")
         return
 
-    log.info(f"Found {len(doc_files)} documents to process")
+    # Apply sharding if specified
+    if args.shard_id is not None and args.shard_count is not None:
+        if args.shard_id < 0 or args.shard_id >= args.shard_count:
+            log.error(f"Invalid shard_id {args.shard_id}: must be between 0 and {args.shard_count - 1}")
+            return
+
+        # Filter documents for this shard using modulo
+        doc_files = [f for i, f in enumerate(all_files) if i % args.shard_count == args.shard_id]
+
+        log.info(f"Shard {args.shard_id}/{args.shard_count}: Processing {len(doc_files)} of {len(all_files)} total documents")
+    else:
+        doc_files = all_files
+        log.info(f"Found {len(doc_files)} documents to process")
+
+    if not doc_files:
+        log.warning(f"No documents assigned to shard {args.shard_id}")
+        return
+
     if args.workers > 1:
         log.info(f"Using {args.workers} parallel workers")
     log.info("")
