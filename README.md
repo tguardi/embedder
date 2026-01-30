@@ -61,7 +61,12 @@ This creates:
 ./setup_test_docs.sh
 ```
 
-Creates 5 sample documents in `test_documents/`
+Generates 3 realistic banking examination documents in `test_documents/`:
+- **Supervisory Letter** - Federal Reserve supervisory concerns and findings
+- **CAMELS Summary** - Comprehensive examination ratings and financial metrics
+- **LFBO Rating Letter** - Large Financial Institution rating communication
+
+These documents contain realistic banking terminology, regulatory citations, and examination findings.
 
 ### 5. Process Documents
 
