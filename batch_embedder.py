@@ -22,6 +22,8 @@ from pathlib import Path
 from collections import defaultdict
 import requests
 from tqdm import tqdm
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import threading
 
 logging.basicConfig(
     level=logging.INFO,
@@ -334,6 +336,7 @@ def main():
     parser.add_argument("--vector-dims", type=int, help="Vector dimensions (for logging)")
     parser.add_argument("--similarity", default="cosine", choices=["cosine", "dot_product", "euclidean"], help="Similarity function")
     parser.add_argument("--no-verify-ssl", action="store_true", help="Disable SSL certificate verification for API calls")
+    parser.add_argument("--workers", type=int, default=1, help="Number of parallel workers (default: 1 for sequential)")
     args = parser.parse_args()
 
     verify_ssl = not args.no_verify_ssl
@@ -369,34 +372,73 @@ def main():
         return
 
     log.info(f"Found {len(doc_files)} documents to process")
+    if args.workers > 1:
+        log.info(f"Using {args.workers} parallel workers")
     log.info("")
 
     # Initialize analytics
     analytics = Analytics()
+    analytics_lock = threading.Lock()
 
-    # Process each document
-    for doc_path in doc_files:
-        try:
-            stats = process_document(
-                doc_path,
-                args.api_url,
-                args.solr_url,
-                args.parent_collection,
-                args.chunk_collection,
-                args.chunk_size,
-                args.overlap,
-                verify_ssl,
-                args.vector_field,
-            )
-            if stats["success"]:
-                analytics.add_document(stats)
-            else:
-                analytics.add_error(stats["doc_id"], "No chunks generated")
+    # Process documents
+    if args.workers > 1:
+        # Parallel processing
+        with ThreadPoolExecutor(max_workers=args.workers) as executor:
+            # Submit all tasks
+            future_to_doc = {
+                executor.submit(
+                    process_document,
+                    doc_path,
+                    args.api_url,
+                    args.solr_url,
+                    args.parent_collection,
+                    args.chunk_collection,
+                    args.chunk_size,
+                    args.overlap,
+                    verify_ssl,
+                    args.vector_field,
+                ): doc_path for doc_path in doc_files
+            }
 
-        except Exception as e:
-            log.error(f"✗ Error processing {doc_path.name}: {e}")
-            log.info("")
-            analytics.add_error(doc_path.stem, str(e))
+            # Process completed tasks
+            for future in as_completed(future_to_doc):
+                doc_path = future_to_doc[future]
+                try:
+                    stats = future.result()
+                    with analytics_lock:
+                        if stats["success"]:
+                            analytics.add_document(stats)
+                        else:
+                            analytics.add_error(stats["doc_id"], "No chunks generated")
+                except Exception as e:
+                    log.error(f"✗ Error processing {doc_path.name}: {e}")
+                    log.info("")
+                    with analytics_lock:
+                        analytics.add_error(doc_path.stem, str(e))
+    else:
+        # Sequential processing (original behavior)
+        for doc_path in doc_files:
+            try:
+                stats = process_document(
+                    doc_path,
+                    args.api_url,
+                    args.solr_url,
+                    args.parent_collection,
+                    args.chunk_collection,
+                    args.chunk_size,
+                    args.overlap,
+                    verify_ssl,
+                    args.vector_field,
+                )
+                if stats["success"]:
+                    analytics.add_document(stats)
+                else:
+                    analytics.add_error(stats["doc_id"], "No chunks generated")
+
+            except Exception as e:
+                log.error(f"✗ Error processing {doc_path.name}: {e}")
+                log.info("")
+                analytics.add_error(doc_path.stem, str(e))
 
     # Commit both collections
     log.info("Committing Solr collections...")

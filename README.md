@@ -84,21 +84,26 @@ These documents contain realistic banking terminology, regulatory citations, and
 
 ### 5. Process Documents
 
+**Small batches** (sequential):
 ```bash
-# Using default field name (vector)
 python batch_embedder.py test_documents/ \
   --api-url "YOUR_API_URL_HERE"
+```
 
-# Or match your custom field name from setup:
-python batch_embedder.py test_documents/ \
+**Large batches** (parallel, 10K documents):
+```bash
+python batch_embedder.py batch_documents/ \
   --api-url "YOUR_API_URL_HERE" \
   --vector-field body-chunk-vector \
   --vector-dims 768 \
   --similarity cosine \
+  --workers 10 \
   --no-verify-ssl
 ```
 
-**Important:** The `--vector-field` must match the `VECTOR_FIELD` you used in `setup_solr.sh`
+**Important:**
+- The `--vector-field` must match the `VECTOR_FIELD` you used in `setup_solr.sh`
+- Use `--workers N` for parallel processing (recommended: 5-20 for large batches)
 
 **That's it!** Your documents are chunked, embedded, and indexed to Solr.
 
@@ -180,10 +185,16 @@ python batch_embedder.py INPUT_DIR \
   --chunk-size 512 \                 # Characters per chunk
   --overlap 50 \                     # Overlap between chunks
   --pattern "*.txt" \                # File pattern to match
+  --workers 10 \                     # Parallel workers (default: 1)
   --no-verify-ssl                    # Disable SSL cert verification (for self-signed certs)
 ```
 
 **Important:** Make sure the `--vector-field`, `--vector-dims`, and `--similarity` match what you used in `setup_solr.sh`.
+
+**Parallel Processing:**
+- Use `--workers N` to process N documents in parallel
+- Recommended: 5-20 workers for large batches
+- Example: `--workers 10` processes 10 documents simultaneously
 
 ---
 
