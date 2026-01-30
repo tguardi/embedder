@@ -154,7 +154,7 @@ class Analytics:
                 log.info(f"  ... and {len(self.errors) - 10} more")
 
 
-def chunk_text(text: str, chunk_size: int, overlap: int) -> list[str]:
+def chunk_text_fixed(text: str, chunk_size: int, overlap: int) -> list[str]:
     """Split text into fixed-size chunks with overlap."""
     if not text:
         return []
@@ -165,6 +165,104 @@ def chunk_text(text: str, chunk_size: int, overlap: int) -> list[str]:
         chunks.append(text[start:end])
         start += chunk_size - overlap
     return chunks
+
+
+def chunk_text_paragraph(text: str, max_tokens: int = 8000, overlap_tokens: int = 100) -> list[str]:
+    """
+    Split text into paragraph-based chunks for large models like BGE-M3.
+
+    Attempts to keep paragraphs together but splits if they exceed max_tokens.
+    Uses rough estimation: 1 token ≈ 4 characters for English text.
+
+    Args:
+        text: Input text to chunk
+        max_tokens: Maximum tokens per chunk (default 8000 for BGE-M3)
+        overlap_tokens: Overlap in tokens between chunks
+
+    Returns:
+        List of text chunks
+    """
+    if not text:
+        return []
+
+    # Token estimation: 1 token ≈ 4 chars
+    chars_per_token = 4
+    max_chars = max_tokens * chars_per_token
+    overlap_chars = overlap_tokens * chars_per_token
+
+    # Split into paragraphs (double newline or single newline)
+    paragraphs = text.split('\n\n')
+    if len(paragraphs) == 1:
+        # Try single newline split
+        paragraphs = text.split('\n')
+
+    chunks = []
+    current_chunk = []
+    current_size = 0
+
+    for para in paragraphs:
+        para = para.strip()
+        if not para:
+            continue
+
+        para_size = len(para)
+
+        # If single paragraph exceeds max, split it with fixed chunking
+        if para_size > max_chars:
+            # Flush current chunk first
+            if current_chunk:
+                chunks.append('\n\n'.join(current_chunk))
+                current_chunk = []
+                current_size = 0
+
+            # Split large paragraph
+            sub_chunks = chunk_text_fixed(para, max_chars, overlap_chars)
+            chunks.extend(sub_chunks)
+            continue
+
+        # Check if adding this paragraph would exceed limit
+        if current_size + para_size + 2 > max_chars and current_chunk:  # +2 for \n\n
+            # Save current chunk
+            chunks.append('\n\n'.join(current_chunk))
+
+            # Start new chunk with overlap
+            # Keep last paragraph(s) for overlap
+            overlap_size = 0
+            overlap_paras = []
+            for p in reversed(current_chunk):
+                if overlap_size + len(p) <= overlap_chars:
+                    overlap_paras.insert(0, p)
+                    overlap_size += len(p) + 2
+                else:
+                    break
+
+            current_chunk = overlap_paras
+            current_size = overlap_size
+
+        current_chunk.append(para)
+        current_size += para_size + 2
+
+    # Add final chunk
+    if current_chunk:
+        chunks.append('\n\n'.join(current_chunk))
+
+    return chunks
+
+
+def chunk_text(text: str, chunk_size: int, overlap: int, chunker: str = "fixed") -> list[str]:
+    """
+    Split text into chunks using specified chunker.
+
+    Args:
+        text: Input text
+        chunk_size: Size parameter (chars for fixed, tokens for paragraph)
+        overlap: Overlap parameter (chars for fixed, tokens for paragraph)
+        chunker: "fixed" or "paragraph"
+    """
+    if chunker == "paragraph":
+        return chunk_text_paragraph(text, max_tokens=chunk_size, overlap_tokens=overlap)
+    else:
+        return chunk_text_fixed(text, chunk_size, overlap)
 
 
 def get_embedding(text: str, api_url: str, verify_ssl: bool = True) -> tuple[list[float], float]:
@@ -191,6 +289,49 @@ def get_embedding(text: str, api_url: str, verify_ssl: bool = True) -> tuple[lis
     return vector, elapsed
 
 
+def get_embeddings_batch(texts: list[str], api_url: str, verify_ssl: bool = True) -> tuple[list[list[float]], float]:
+    """
+    Get embeddings for multiple texts in a single API call.
+
+    Args:
+        texts: List of texts to embed
+        api_url: API endpoint
+        verify_ssl: SSL verification flag
+
+    Returns:
+        (list of vectors, elapsed_time)
+    """
+    start = time.perf_counter()
+    resp = requests.post(
+        api_url,
+        headers={"Content-Type": "application/json"},
+        json={"inputs": texts},
+        timeout=120,  # Longer timeout for batch
+        verify=verify_ssl,
+    )
+    resp.raise_for_status()
+    elapsed = time.perf_counter() - start
+
+    result = resp.json()
+
+    # Handle different response formats
+    if isinstance(result, list):
+        # Direct list of vectors
+        if len(result) > 0 and isinstance(result[0], list) and isinstance(result[0][0], (int, float)):
+            vectors = result
+        # List of dicts with embeddings
+        elif len(result) > 0 and isinstance(result[0], dict):
+            vectors = [r.get("embedding", r.get("data", r)) for r in result]
+        else:
+            vectors = result
+    elif isinstance(result, dict):
+        vectors = result.get("data", result.get("embeddings", []))
+    else:
+        vectors = result
+
+    return vectors, elapsed
+
+
 def index_parent(solr_url: str, collection: str, doc: dict) -> float:
     """Index parent document. Returns elapsed time."""
     start = time.perf_counter()
@@ -200,12 +341,28 @@ def index_parent(solr_url: str, collection: str, doc: dict) -> float:
     return time.perf_counter() - start
 
 
-def index_chunks(solr_url: str, collection: str, docs: list[dict]) -> float:
-    """Batch index chunk documents. Returns elapsed time."""
+def index_chunks(solr_url: str, collection: str, docs: list[dict], batch_size: int = 100) -> float:
+    """
+    Batch index chunk documents with configurable batch size.
+
+    Args:
+        solr_url: Solr base URL
+        collection: Collection name
+        docs: List of documents to index
+        batch_size: Number of docs per batch (default 100)
+
+    Returns:
+        Total elapsed time
+    """
     start = time.perf_counter()
     url = f"{solr_url}/{collection}/update/json/docs?commit=false"
-    resp = requests.post(url, json=docs, timeout=60)
-    resp.raise_for_status()
+
+    # Split into batches
+    for i in range(0, len(docs), batch_size):
+        batch = docs[i:i + batch_size]
+        resp = requests.post(url, json=batch, timeout=120)
+        resp.raise_for_status()
+
     return time.perf_counter() - start
 
 
@@ -225,8 +382,27 @@ def process_document(
     overlap: int,
     verify_ssl: bool = True,
     vector_field: str = "vector",
+    chunker: str = "fixed",
+    api_batch_size: int = 1,
+    solr_batch_size: int = 100,
 ) -> dict:
-    """Process a single document: chunk, embed, index. Returns stats."""
+    """
+    Process a single document: chunk, embed, index. Returns stats.
+
+    Args:
+        doc_path: Path to document
+        api_url: Embedding API URL
+        solr_url: Solr base URL
+        parent_collection: Parent collection name
+        chunk_collection: Chunk collection name
+        chunk_size: Chunk size (chars for fixed, tokens for paragraph)
+        overlap: Overlap (chars for fixed, tokens for paragraph)
+        verify_ssl: SSL verification flag
+        vector_field: Name of vector field in Solr
+        chunker: "fixed" or "paragraph"
+        api_batch_size: Number of texts per API call (1 = individual calls)
+        solr_batch_size: Number of docs per Solr batch
+    """
 
     doc_id = doc_path.stem
     doc_start = time.perf_counter()
@@ -242,12 +418,13 @@ def process_document(
     log.info(f"│  Size: {doc_size:,} characters")
 
     # Chunk
-    chunks = chunk_text(text, chunk_size, overlap)
+    chunks = chunk_text(text, chunk_size, overlap, chunker)
     num_chunks = len(chunks)
     chunk_sizes = [len(c) for c in chunks]
 
-    log.info(f"│  Chunks: {num_chunks}")
-    log.info(f"│    Min/Avg/Max size: {min(chunk_sizes)}/{sum(chunk_sizes)//len(chunk_sizes)}/{max(chunk_sizes)} chars")
+    log.info(f"│  Chunks: {num_chunks} ({chunker} chunker)")
+    if chunk_sizes:
+        log.info(f"│    Min/Avg/Max size: {min(chunk_sizes)}/{sum(chunk_sizes)//len(chunk_sizes)}/{max(chunk_sizes)} chars")
 
     if not chunks:
         log.warning(f"│  ⚠ No chunks generated")
@@ -272,39 +449,71 @@ def process_document(
         "min_chunk_size": min(chunk_sizes),
         "max_chunk_size": max(chunk_sizes),
         "avg_chunk_size": sum(chunk_sizes) // len(chunk_sizes),
+        "chunker": chunker,
     }
     parent_time = index_parent(solr_url, parent_collection, parent_doc)
     log.info(f"│  ✓ Parent indexed ({parent_time*1000:.0f}ms)")
 
-    # Embed chunks and index
+    # Embed chunks
     chunk_docs = []
     total_api_time = 0
+    num_api_calls = 0
 
-    log.info(f"│  Embedding {num_chunks} chunks...")
-    for idx, chunk in enumerate(chunks):
-        vector, api_time = get_embedding(chunk, api_url, verify_ssl)
-        total_api_time += api_time
+    if api_batch_size > 1:
+        # Batch API calls
+        log.info(f"│  Embedding {num_chunks} chunks (batch size: {api_batch_size})...")
+        for i in range(0, num_chunks, api_batch_size):
+            batch_chunks = chunks[i:i + api_batch_size]
+            vectors, api_time = get_embeddings_batch(batch_chunks, api_url, verify_ssl)
+            total_api_time += api_time
+            num_api_calls += 1
 
-        chunk_doc = {
-            "id": f"{doc_id}_chunk_{idx}",
-            "parent_id": doc_id,
-            "chunk_index": idx,
-            "chunk_text": chunk,
-            "chunk_size": len(chunk),
-            vector_field: vector,
-        }
-        chunk_docs.append(chunk_doc)
+            # Create chunk documents
+            for j, (chunk, vector) in enumerate(zip(batch_chunks, vectors)):
+                idx = i + j
+                chunk_doc = {
+                    "id": f"{doc_id}_chunk_{idx}",
+                    "parent_id": doc_id,
+                    "chunk_index": idx,
+                    "chunk_text": chunk,
+                    "chunk_size": len(chunk),
+                    vector_field: vector,
+                }
+                chunk_docs.append(chunk_doc)
 
-        # Log progress for large documents
-        if num_chunks > 20 and (idx + 1) % 10 == 0:
-            log.info(f"│    {idx+1}/{num_chunks} chunks embedded...")
+            # Log progress for large documents
+            if num_chunks > 50 and (i + api_batch_size) % 50 == 0:
+                log.info(f"│    {min(i + api_batch_size, num_chunks)}/{num_chunks} chunks embedded...")
 
-    chunk_time = index_chunks(solr_url, chunk_collection, chunk_docs)
+    else:
+        # Individual API calls
+        log.info(f"│  Embedding {num_chunks} chunks...")
+        for idx, chunk in enumerate(chunks):
+            vector, api_time = get_embedding(chunk, api_url, verify_ssl)
+            total_api_time += api_time
+            num_api_calls += 1
+
+            chunk_doc = {
+                "id": f"{doc_id}_chunk_{idx}",
+                "parent_id": doc_id,
+                "chunk_index": idx,
+                "chunk_text": chunk,
+                "chunk_size": len(chunk),
+                vector_field: vector,
+            }
+            chunk_docs.append(chunk_doc)
+
+            # Log progress for large documents
+            if num_chunks > 20 and (idx + 1) % 10 == 0:
+                log.info(f"│    {idx+1}/{num_chunks} chunks embedded...")
+
+    # Index chunks to Solr
+    chunk_time = index_chunks(solr_url, chunk_collection, chunk_docs, solr_batch_size)
 
     total_time = time.perf_counter() - doc_start
 
     log.info(f"│  ✓ {num_chunks} chunks indexed ({chunk_time*1000:.0f}ms)")
-    log.info(f"│  API time: {total_api_time:.2f}s ({total_api_time/num_chunks*1000:.0f}ms avg)")
+    log.info(f"│  API time: {total_api_time:.2f}s ({num_api_calls} calls, {total_api_time/num_api_calls*1000:.0f}ms avg)")
     log.info(f"│  Total time: {total_time:.2f}s ({num_chunks/total_time:.1f} chunks/sec)")
     log.info(f"└─ ✓ {doc_id}")
     log.info("")
@@ -314,7 +523,7 @@ def process_document(
         "doc_size": doc_size,
         "num_chunks": num_chunks,
         "chunk_sizes": chunk_sizes,
-        "api_calls": num_chunks,
+        "api_calls": num_api_calls,
         "api_time": total_api_time,
         "solr_time": parent_time + chunk_time,
         "total_time": total_time,
@@ -329,16 +538,30 @@ def main():
     parser.add_argument("--solr-url", default="http://localhost:8983/solr", help="Solr URL")
     parser.add_argument("--parent-collection", default="documents", help="Parent collection")
     parser.add_argument("--chunk-collection", default="vectors", help="Chunk collection")
-    parser.add_argument("--chunk-size", type=int, default=512, help="Chunk size")
-    parser.add_argument("--overlap", type=int, default=50, help="Chunk overlap")
+
+    # Chunking options
+    parser.add_argument("--chunker", default="fixed", choices=["fixed", "paragraph"],
+                       help="Chunking strategy: 'fixed' for char-based, 'paragraph' for semantic (use with large models)")
+    parser.add_argument("--chunk-size", type=int, default=512,
+                       help="Chunk size: characters for 'fixed', tokens for 'paragraph' (default: 512 for fixed, recommend 6000-8000 for paragraph/BGE-M3)")
+    parser.add_argument("--overlap", type=int, default=50,
+                       help="Overlap: characters for 'fixed', tokens for 'paragraph' (default: 50)")
+
     parser.add_argument("--pattern", default="*.txt", help="File pattern to match")
     parser.add_argument("--vector-field", default="vector", help="Name of vector field in Solr")
     parser.add_argument("--vector-dims", type=int, help="Vector dimensions (for logging)")
     parser.add_argument("--similarity", default="cosine", choices=["cosine", "dot_product", "euclidean"], help="Similarity function")
-    parser.add_argument("--no-verify-ssl", action="store_true", help="Disable SSL certificate verification for API calls")
+
+    # Performance options
+    parser.add_argument("--api-batch-size", type=int, default=1,
+                       help="Number of texts per API call (1=individual, >1=batch). Batch mode is faster but requires API support.")
+    parser.add_argument("--solr-batch-size", type=int, default=100,
+                       help="Number of documents per Solr batch update (default: 100)")
     parser.add_argument("--workers", type=int, default=1, help="Number of parallel workers (default: 1 for sequential)")
     parser.add_argument("--shard-id", type=int, help="Shard ID for distributed processing (0-based)")
     parser.add_argument("--shard-count", type=int, help="Total number of shards")
+
+    parser.add_argument("--no-verify-ssl", action="store_true", help="Disable SSL certificate verification for API calls")
     args = parser.parse_args()
 
     verify_ssl = not args.no_verify_ssl
@@ -360,7 +583,12 @@ def main():
     if args.vector_dims:
         log.info(f"  Vector dimensions: {args.vector_dims}")
     log.info(f"  Similarity function: {args.similarity}")
-    log.info(f"Chunk size: {args.chunk_size}, overlap: {args.overlap}")
+    log.info(f"Chunker: {args.chunker}")
+    if args.chunker == "paragraph":
+        log.info(f"  Chunk size: {args.chunk_size} tokens (max), overlap: {args.overlap} tokens")
+    else:
+        log.info(f"  Chunk size: {args.chunk_size} chars, overlap: {args.overlap} chars")
+    log.info(f"Batching: API={args.api_batch_size} texts/call, Solr={args.solr_batch_size} docs/batch")
     log.info(f"File pattern: {args.pattern}")
     log.info("=" * 70)
     log.info("")
@@ -416,6 +644,9 @@ def main():
                     args.overlap,
                     verify_ssl,
                     args.vector_field,
+                    args.chunker,
+                    args.api_batch_size,
+                    args.solr_batch_size,
                 ): doc_path for doc_path in doc_files
             }
 
@@ -448,6 +679,9 @@ def main():
                     args.overlap,
                     verify_ssl,
                     args.vector_field,
+                    args.chunker,
+                    args.api_batch_size,
+                    args.solr_batch_size,
                 )
                 if stats["success"]:
                     analytics.add_document(stats)

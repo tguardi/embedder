@@ -84,26 +84,48 @@ These documents contain realistic banking terminology, regulatory citations, and
 
 ### 5. Process Documents
 
-**Small batches** (sequential):
+**Small models with fixed chunking** (sequential):
 ```bash
 python batch_embedder.py test_documents/ \
-  --api-url "YOUR_API_URL_HERE"
+  --api-url "YOUR_API_URL_HERE" \
+  --chunker fixed \
+  --chunk-size 512 \
+  --overlap 50
 ```
 
-**Large batches** (parallel, 10K documents):
+**Small models with parallel processing** (10K documents):
 ```bash
 python batch_embedder.py batch_documents/ \
   --api-url "YOUR_API_URL_HERE" \
   --vector-field vector \
   --vector-dims 384 \
-  --similarity cosine \
+  --chunker fixed \
+  --chunk-size 512 \
   --workers 10 \
+  --no-verify-ssl
+```
+
+**Large models (BGE-M3) with paragraph chunking and batching**:
+```bash
+python batch_embedder.py batch_documents/ \
+  --api-url "YOUR_BGE_M3_URL" \
+  --vector-field bge_m3_vector \
+  --vector-dims 1024 \
+  --chunker paragraph \
+  --chunk-size 6000 \
+  --overlap 100 \
+  --api-batch-size 8 \
+  --workers 4 \
   --no-verify-ssl
 ```
 
 **Important:**
 - The `--vector-field` must match the `VECTOR_FIELD` you used in `setup_solr.sh`
+- Use `--chunker paragraph` for large models (BGE-M3, etc.)
+- Use `--api-batch-size > 1` if your API supports batch requests
 - Use `--workers N` for parallel processing (recommended: 5-20 for large batches)
+
+**📖 See [BGE_M3_GUIDE.md](BGE_M3_GUIDE.md) for detailed guide on large models and paragraph chunking**
 
 **That's it!** Your documents are chunked, embedded, and indexed to Solr.
 
@@ -179,22 +201,42 @@ python batch_embedder.py INPUT_DIR \
   --solr-url URL \                   # Solr base URL (default: localhost:8983)
   --parent-collection NAME \         # Parent collection (default: documents)
   --chunk-collection NAME \          # Chunk collection (default: vectors)
+
+  # Vector configuration
   --vector-field NAME \              # Vector field name (default: vector)
   --vector-dims 384 \                # Vector dimensions (for logging only)
   --similarity cosine \              # Similarity: cosine, dot_product, euclidean
-  --chunk-size 512 \                 # Characters per chunk
-  --overlap 50 \                     # Overlap between chunks
-  --pattern "*.txt" \                # File pattern to match
+
+  # Chunking strategy
+  --chunker fixed|paragraph \        # Chunking: 'fixed' (char-based) or 'paragraph' (semantic)
+  --chunk-size 512 \                 # For fixed: chars, for paragraph: tokens
+  --overlap 50 \                     # For fixed: chars, for paragraph: tokens
+
+  # Performance options
+  --api-batch-size 1 \               # Texts per API call (1=individual, >1=batch)
+  --solr-batch-size 100 \            # Docs per Solr batch (default: 100)
   --workers 10 \                     # Parallel workers (default: 1)
+  --shard-id 0 \                     # Shard ID for distributed processing
+  --shard-count 4 \                  # Total number of shards
+
+  # Other
+  --pattern "*.txt" \                # File pattern to match
   --no-verify-ssl                    # Disable SSL cert verification (for self-signed certs)
 ```
 
 **Important:** Make sure the `--vector-field`, `--vector-dims`, and `--similarity` match what you used in `setup_solr.sh`.
 
-**Parallel Processing:**
-- Use `--workers N` to process N documents in parallel
-- Recommended: 5-20 workers for large batches
-- Example: `--workers 10` processes 10 documents simultaneously
+**Chunking Strategies:**
+- `--chunker fixed`: Character-based chunks (for small models < 512 tokens)
+  - Example: `--chunker fixed --chunk-size 512 --overlap 50`
+- `--chunker paragraph`: Semantic chunks respecting paragraph boundaries (for large models)
+  - Example: `--chunker paragraph --chunk-size 6000 --overlap 100`
+  - Chunk size is in **tokens** (1 token ≈ 4 chars)
+
+**Performance:**
+- `--api-batch-size`: Send multiple texts per API call (requires API support)
+- `--workers`: Thread-level parallelism (5-20 recommended)
+- `--shard-id` / `--shard-count`: Process-level parallelism (use with `parallel_batch.sh`)
 
 ---
 
@@ -248,14 +290,66 @@ curl "http://localhost:8983/solr/vectors/select?q=*:*&rows=0"
 
 ---
 
+## Advanced Features
+
+### Running Multiple Models Simultaneously
+
+Process the same documents with different embedding models to create multiple vector fields:
+
+```bash
+# Setup with multiple vector fields
+./setup_solr_multi_vector.sh
+
+# Configure APIs
+export BGE_M3_URL="https://your-bge-m3-api.com/embed"
+export SMALL_MODEL_URL="https://your-small-api.com/embed"
+
+# Run both models in parallel
+./multi_vector_batch.sh batch_documents/
+```
+
+This creates:
+- `bge_m3_vector` (1024 dims) - for semantic search quality
+- `small_vector` (384 dims) - for fast retrieval
+
+### Distributed Processing with Sharding
+
+For maximum performance, run multiple process instances:
+
+```bash
+# 4 processes × 4 workers = 16 total parallel workers
+./parallel_batch.sh batch_documents/ "YOUR_API_URL" 4 4 \
+  --vector-field vector \
+  --chunker fixed \
+  --no-verify-ssl
+```
+
+### Clearing Collections
+
+```bash
+# Clear documents only (keep schema)
+./clear_collections.sh
+
+# Delete and recreate collections (for changing vector dimensions)
+./clear_collections.sh --recreate
+```
+
+---
+
 ## Files
 
 | File | Purpose |
 |------|---------|
 | `batch_embedder.py` | **Main tool** - process documents with analytics |
-| `setup_solr.sh` | Create Solr collections with vector support |
+| `setup_solr.sh` | Create Solr collections with single vector field |
+| `setup_solr_multi_vector.sh` | Create Solr collections with multiple vector fields |
 | `setup_test_docs.sh` | Create sample documents for testing |
+| `generate_batch.py` | Generate thousands of test documents |
+| `parallel_batch.sh` | Run multiple instances with sharding |
+| `multi_vector_batch.sh` | Run multiple models simultaneously |
+| `clear_collections.sh` | Clear or recreate Solr collections |
 | `docker-compose.simple.yml` | Start Solr for local testing |
+| **BGE_M3_GUIDE.md** | **Guide for large models with paragraph chunking** |
 | `QUICKSTART.md` | Detailed usage guide |
 | `DECISIONS.md` | Architecture decisions |
 | `archive/` | Advanced tools (full Solr 7→9 migration, etc.) |
