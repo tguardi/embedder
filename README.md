@@ -240,6 +240,50 @@ python batch_embedder.py INPUT_DIR \
 
 ---
 
+## Benchmarking & Performance Testing
+
+### Generate Test Data
+
+```bash
+# Generate 1000 test documents for benchmarking (~5 seconds)
+./generate_1k_batch.sh batch_1k
+```
+
+### Run Parallel Benchmarks
+
+```bash
+# Syntax: ./parallel_batch.sh INPUT_DIR API_URL INSTANCES WORKERS [options]
+./parallel_batch.sh batch_1k "YOUR_API_URL" 10 10 \
+  --vector-field bge_m3_vector \
+  --vector-dims 1024 \
+  --chunker paragraph \
+  --chunk-size 6000 \
+  --api-batch-size 16 \
+  --no-verify-ssl
+```
+
+Each run automatically logs to `run_history.csv` for tracking performance across runs.
+
+### View Run History
+
+```bash
+# Show last 10 runs
+./view_run_history.sh
+
+# Show top 5 fastest runs
+./view_run_history.sh --top
+
+# Compare configurations
+./view_run_history.sh --compare
+
+# Show statistics
+./view_run_history.sh --stats
+```
+
+See [BENCHMARK_GUIDE.md](BENCHMARK_GUIDE.md) for detailed benchmarking strategies and optimization tips.
+
+---
+
 ## Solr Structure
 
 ### Parent Collection (documents)

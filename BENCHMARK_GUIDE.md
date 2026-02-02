@@ -166,6 +166,58 @@ time ./parallel_batch.sh "$INPUT_DIR" "$API_URL" 10 10 \
   2>&1 | grep -E "(Documents/sec|Chunks/sec|Avg API latency|Wall-clock)"
 ```
 
+## Run History Tracking
+
+Every benchmark run is automatically logged to `run_history.csv` with key metrics:
+
+### View Your Run History
+
+```bash
+# Show last 10 runs (default)
+./view_run_history.sh
+
+# Show last 20 runs
+./view_run_history.sh --last 20
+
+# Show all runs
+./view_run_history.sh --all
+
+# Show top 5 fastest runs
+./view_run_history.sh --top
+
+# Compare different configurations
+./view_run_history.sh --compare
+
+# Show overall statistics
+./view_run_history.sh --stats
+
+# Export to spreadsheet
+./view_run_history.sh --csv > my_benchmarks.csv
+```
+
+### Example Output
+
+```
+========================================================================
+TOP 5 FASTEST RUNS (by docs/sec)
+========================================================================
+
+timestamp            input_dir  instances  workers  batch_size  docs_per_sec  chunks_per_sec  api_latency_ms
+2026-02-02 10:50:00  batch_1k   15         10       64          39.2          99.7            1275
+2026-02-02 10:35:12  batch_1k   10         10       32          35.7          90.8            1255
+2026-02-02 10:22:45  batch_1k   10         5        16          22.1          56.1            1020
+```
+
+### Tracked Metrics
+
+Each run logs:
+- Timestamp
+- Input directory
+- Configuration (instances, workers, batch size)
+- Performance (docs/sec, chunks/sec)
+- API metrics (latency, total calls)
+- Status (success/failed)
+
 ## Monitoring During Runs
 
 ### Watch all logs in real-time

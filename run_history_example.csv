@@ -1,0 +1,5 @@
+timestamp,input_dir,instances,workers,total_workers,batch_size,docs,chunks,wall_time_sec,docs_per_sec,chunks_per_sec,api_calls,api_time_sec,api_latency_ms,status
+2026-02-02 10:15:23,batch_1k,5,5,25,8,1000,2543,54.1,18.5,47.0,318,320.5,1008,success
+2026-02-02 10:22:45,batch_1k,10,5,50,16,1000,2543,45.3,22.1,56.1,159,162.3,1020,success
+2026-02-02 10:35:12,batch_1k,10,10,100,32,1000,2543,28.0,35.7,90.8,79,99.2,1255,success
+2026-02-02 10:50:00,batch_1k,15,10,150,64,1000,2543,25.5,39.2,99.7,40,51.0,1275,success

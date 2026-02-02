@@ -180,6 +180,33 @@ echo "  Avg API latency:      ${AVG_API_LATENCY}ms"
 echo ""
 echo "------------------------------------------------------------------------"
 
+# Save to run history CSV
+HISTORY_FILE="run_history.csv"
+
+# Create header if file doesn't exist
+if [ ! -f "$HISTORY_FILE" ]; then
+    echo "timestamp,input_dir,instances,workers,total_workers,batch_size,docs,chunks,wall_time_sec,docs_per_sec,chunks_per_sec,api_calls,api_time_sec,api_latency_ms,status" > "$HISTORY_FILE"
+fi
+
+# Extract batch size from EXTRA_ARGS (if present)
+BATCH_SIZE=$(echo "$EXTRA_ARGS" | grep -o "\-\-api-batch-size [0-9]*" | awk '{print $2}')
+BATCH_SIZE=${BATCH_SIZE:-1}  # Default to 1 if not specified
+
+# Determine status
+if [ $FAILURES -eq 0 ]; then
+    STATUS="success"
+else
+    STATUS="failed"
+fi
+
+# Append run data
+TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
+echo "$TIMESTAMP,$INPUT_DIR,$NUM_INSTANCES,$WORKERS_PER_INSTANCE,$((NUM_INSTANCES * WORKERS_PER_INSTANCE)),$BATCH_SIZE,$TOTAL_DOCS,$TOTAL_CHUNKS,$MAX_TIME,$DOCS_PER_SEC,$CHUNKS_PER_SEC,$TOTAL_API_CALLS,$TOTAL_API_TIME,$AVG_API_LATENCY,$STATUS" >> "$HISTORY_FILE"
+
+echo ""
+echo "📊 Run logged to $HISTORY_FILE"
+echo ""
+
 if [ $FAILURES -eq 0 ]; then
     echo "✓ All instances completed successfully"
     echo ""
