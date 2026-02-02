@@ -51,7 +51,7 @@ for instance_id in $(seq 0 $((NUM_INSTANCES - 1))); do
     echo "Starting instance $instance_id (logging to $LOG_FILE)..."
 
     # Launch in background with modulo sharding
-    python batch_embedder.py "$INPUT_DIR" \
+    python3 batch_embedder.py "$INPUT_DIR" \
         --api-url "$API_URL" \
         --workers "$WORKERS_PER_INSTANCE" \
         --shard-id "$instance_id" \
@@ -95,6 +95,90 @@ for instance_id in $(seq 0 $((NUM_INSTANCES - 1))); do
         ((FAILURES++))
     fi
 done
+
+# Aggregate metrics from all instances
+echo ""
+echo "AGGREGATED METRICS:"
+echo "------------------------------------------------------------------------"
+
+TOTAL_DOCS=0
+TOTAL_CHUNKS=0
+TOTAL_TIME=0
+TOTAL_API_CALLS=0
+TOTAL_API_TIME=0
+AVG_API_LATENCY=0
+DOCS_PER_SEC=0
+CHUNKS_PER_SEC=0
+
+for instance_id in $(seq 0 $((NUM_INSTANCES - 1))); do
+    LOG_FILE="logs/instance_${instance_id}.log"
+    if [ -f "$LOG_FILE" ]; then
+        # Extract metrics from each log
+        DOCS=$(grep "Total processed:" "$LOG_FILE" | tail -1 | awk '{print $3}')
+        CHUNKS=$(grep "Total chunks:" "$LOG_FILE" | tail -1 | awk '{print $3}' | tr -d ',')
+        TIME=$(grep "Total time:" "$LOG_FILE" | tail -1 | awk '{print $3}' | tr -d 's')
+        API_CALLS=$(grep "Total API calls:" "$LOG_FILE" | tail -1 | awk '{print $4}' | tr -d ',')
+        API_TIME=$(grep "Total API time:" "$LOG_FILE" | tail -1 | awk '{print $4}' | tr -d 's')
+
+        # Accumulate (handle empty values)
+        TOTAL_DOCS=$((TOTAL_DOCS + ${DOCS:-0}))
+        TOTAL_CHUNKS=$((TOTAL_CHUNKS + ${CHUNKS:-0}))
+        TOTAL_API_CALLS=$((TOTAL_API_CALLS + ${API_CALLS:-0}))
+
+        # For float values, use bc if available, otherwise accumulate manually
+        if [ -n "$TIME" ]; then
+            TOTAL_TIME=$(echo "$TOTAL_TIME + $TIME" | bc 2>/dev/null || echo "$TOTAL_TIME")
+        fi
+        if [ -n "$API_TIME" ]; then
+            TOTAL_API_TIME=$(echo "$TOTAL_API_TIME + $API_TIME" | bc 2>/dev/null || echo "$TOTAL_API_TIME")
+        fi
+    fi
+done
+
+# Calculate aggregate metrics (use the longest instance time as total time)
+MAX_TIME=0
+for instance_id in $(seq 0 $((NUM_INSTANCES - 1))); do
+    LOG_FILE="logs/instance_${instance_id}.log"
+    if [ -f "$LOG_FILE" ]; then
+        TIME=$(grep "Total time:" "$LOG_FILE" | tail -1 | awk '{print $3}' | tr -d 's')
+        if [ -n "$TIME" ]; then
+            # Compare times (convert to integer milliseconds for comparison)
+            TIME_MS=$(echo "$TIME * 1000" | bc 2>/dev/null | cut -d. -f1)
+            MAX_TIME_MS=$(echo "$MAX_TIME * 1000" | bc 2>/dev/null | cut -d. -f1)
+            if [ "${TIME_MS:-0}" -gt "${MAX_TIME_MS:-0}" ]; then
+                MAX_TIME=$TIME
+            fi
+        fi
+    fi
+done
+
+# Calculate throughput metrics
+if [ -n "$MAX_TIME" ] && [ "$(echo "$MAX_TIME > 0" | bc 2>/dev/null)" == "1" ]; then
+    DOCS_PER_SEC=$(echo "scale=1; $TOTAL_DOCS / $MAX_TIME" | bc 2>/dev/null)
+    CHUNKS_PER_SEC=$(echo "scale=1; $TOTAL_CHUNKS / $MAX_TIME" | bc 2>/dev/null)
+fi
+
+if [ "$TOTAL_API_CALLS" -gt 0 ] && [ -n "$TOTAL_API_TIME" ] && [ "$(echo "$TOTAL_API_TIME > 0" | bc 2>/dev/null)" == "1" ]; then
+    AVG_API_LATENCY=$(echo "scale=0; ($TOTAL_API_TIME / $TOTAL_API_CALLS) * 1000" | bc 2>/dev/null)
+fi
+
+# Print summary
+echo "Configuration: $NUM_INSTANCES instances × $WORKERS_PER_INSTANCE workers = $((NUM_INSTANCES * WORKERS_PER_INSTANCE)) total workers"
+echo ""
+echo "Documents processed:    $TOTAL_DOCS"
+echo "Total chunks:           $TOTAL_CHUNKS"
+echo "Wall-clock time:        ${MAX_TIME}s"
+echo ""
+echo "Throughput:"
+echo "  Documents/sec:        ${DOCS_PER_SEC}"
+echo "  Chunks/sec:           ${CHUNKS_PER_SEC}"
+echo ""
+echo "API Performance:"
+echo "  Total API calls:      $TOTAL_API_CALLS"
+echo "  Total API time:       ${TOTAL_API_TIME}s"
+echo "  Avg API latency:      ${AVG_API_LATENCY}ms"
+echo ""
+echo "------------------------------------------------------------------------"
 
 if [ $FAILURES -eq 0 ]; then
     echo "✓ All instances completed successfully"
