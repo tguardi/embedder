@@ -114,11 +114,13 @@ for instance_id in $(seq 0 $((NUM_INSTANCES - 1))); do
     LOG_FILE="logs/instance_${instance_id}.log"
     if [ -f "$LOG_FILE" ]; then
         # Extract metrics from each log
-        DOCS=$(grep "Total processed:" "$LOG_FILE" | tail -1 | awk '{print $3}')
-        CHUNKS=$(grep "Total chunks:" "$LOG_FILE" | tail -1 | awk '{print $3}' | tr -d ',')
-        TIME=$(grep "Total time:" "$LOG_FILE" | tail -1 | awk '{print $3}' | tr -d 's')
-        API_CALLS=$(grep "Total API calls:" "$LOG_FILE" | tail -1 | awk '{print $4}' | tr -d ',')
-        API_TIME=$(grep "Total API time:" "$LOG_FILE" | tail -1 | awk '{print $4}' | tr -d 's')
+        # Log format: "2026-02-02 10:15:23 [INFO]   Total processed: 100"
+        # Use awk with colon as additional delimiter to get value after ":"
+        DOCS=$(grep "Total processed:" "$LOG_FILE" | tail -1 | awk -F':' '{print $NF}' | tr -d ' ')
+        CHUNKS=$(grep "Total chunks:" "$LOG_FILE" | tail -1 | awk -F':' '{print $NF}' | tr -d ' ,' )
+        TIME=$(grep "Total time:" "$LOG_FILE" | tail -1 | awk -F':' '{print $NF}' | tr -d ' s')
+        API_CALLS=$(grep "Total API calls:" "$LOG_FILE" | tail -1 | awk -F':' '{print $NF}' | tr -d ' ,')
+        API_TIME=$(grep "Total API time:" "$LOG_FILE" | tail -1 | awk -F':' '{print $NF}' | tr -d ' s')
 
         # Accumulate (handle empty values)
         TOTAL_DOCS=$((TOTAL_DOCS + ${DOCS:-0}))
@@ -140,7 +142,7 @@ MAX_TIME=0
 for instance_id in $(seq 0 $((NUM_INSTANCES - 1))); do
     LOG_FILE="logs/instance_${instance_id}.log"
     if [ -f "$LOG_FILE" ]; then
-        TIME=$(grep "Total time:" "$LOG_FILE" | tail -1 | awk '{print $3}' | tr -d 's')
+        TIME=$(grep "Total time:" "$LOG_FILE" | tail -1 | awk -F':' '{print $NF}' | tr -d ' s')
         if [ -n "$TIME" ]; then
             # Compare times (convert to integer milliseconds for comparison)
             TIME_MS=$(echo "$TIME * 1000" | bc 2>/dev/null | cut -d. -f1)
