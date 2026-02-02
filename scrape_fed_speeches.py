@@ -182,8 +182,8 @@ def main():
     parser.add_argument(
         '--start-year',
         type=int,
-        default=2025,
-        help='Year to start scraping from (default: 2025)'
+        default=2026,
+        help='Year to start scraping from (default: 2026)'
     )
 
     args = parser.parse_args()
