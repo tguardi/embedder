@@ -202,10 +202,10 @@ Every benchmark run is automatically logged to `run_history.csv` with key metric
 TOP 5 FASTEST RUNS (by docs/sec)
 ========================================================================
 
-timestamp            input_dir  instances  workers  batch_size  docs_per_sec  chunks_per_sec  api_latency_ms
-2026-02-02 10:50:00  batch_1k   15         10       64          39.2          99.7            1275
-2026-02-02 10:35:12  batch_1k   10         10       32          35.7          90.8            1255
-2026-02-02 10:22:45  batch_1k   10         5        16          22.1          56.1            1020
+timestamp            input_dir  instances  workers  batch_size  chunk_size  overlap  docs_per_sec  chunks_per_sec  api_latency_ms
+2026-02-02 10:50:00  batch_1k   15         10       64          6000        100      39.2          99.7            1275
+2026-02-02 10:35:12  batch_1k   10         10       32          6000        100      35.7          90.8            1255
+2026-02-02 10:22:45  batch_1k   10         5        16          6000        100      22.1          56.1            1020
 ```
 
 ### Tracked Metrics
@@ -213,7 +213,7 @@ timestamp            input_dir  instances  workers  batch_size  docs_per_sec  ch
 Each run logs:
 - Timestamp
 - Input directory
-- Configuration (instances, workers, batch size)
+- Configuration (instances, workers, batch size, chunk size, overlap)
 - Performance (docs/sec, chunks/sec)
 - API metrics (latency, total calls)
 - Status (success/failed)

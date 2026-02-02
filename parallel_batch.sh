@@ -185,14 +185,36 @@ echo "------------------------------------------------------------------------"
 # Save to run history CSV
 HISTORY_FILE="run_history.csv"
 
-# Create header if file doesn't exist
+# Create or upgrade header if needed
 if [ ! -f "$HISTORY_FILE" ]; then
-    echo "timestamp,input_dir,instances,workers,total_workers,batch_size,docs,chunks,wall_time_sec,docs_per_sec,chunks_per_sec,api_calls,api_time_sec,api_latency_ms,status" > "$HISTORY_FILE"
+    echo "timestamp,input_dir,instances,workers,total_workers,batch_size,chunk_size,overlap,docs,chunks,wall_time_sec,docs_per_sec,chunks_per_sec,api_calls,api_time_sec,api_latency_ms,status" > "$HISTORY_FILE"
+else
+    if ! head -1 "$HISTORY_FILE" | grep -q "chunk_size"; then
+        TMP_HISTORY="$(mktemp)"
+        echo "timestamp,input_dir,instances,workers,total_workers,batch_size,chunk_size,overlap,docs,chunks,wall_time_sec,docs_per_sec,chunks_per_sec,api_calls,api_time_sec,api_latency_ms,status" > "$TMP_HISTORY"
+        tail -n +2 "$HISTORY_FILE" | awk -F',' 'BEGIN{OFS=","} {print $1,$2,$3,$4,$5,$6,"","",$7,$8,$9,$10,$11,$12,$13,$14,$15}' >> "$TMP_HISTORY"
+        mv "$TMP_HISTORY" "$HISTORY_FILE"
+    fi
 fi
 
-# Extract batch size from EXTRA_ARGS (if present)
-BATCH_SIZE=$(echo "$EXTRA_ARGS" | grep -o "\-\-api-batch-size [0-9]*" | awk '{print $2}')
-BATCH_SIZE=${BATCH_SIZE:-1}  # Default to 1 if not specified
+# Extract batch size, chunk size, overlap from EXTRA_ARGS (if present)
+BATCH_SIZE=""
+CHUNK_SIZE=""
+OVERLAP=""
+ARGS=($EXTRA_ARGS)
+for ((i=0; i<${#ARGS[@]}; i++)); do
+    case "${ARGS[i]}" in
+        --api-batch-size) BATCH_SIZE="${ARGS[i+1]}";;
+        --chunk-size) CHUNK_SIZE="${ARGS[i+1]}";;
+        --overlap) OVERLAP="${ARGS[i+1]}";;
+        --api-batch-size=*) BATCH_SIZE="${ARGS[i]#*=}";;
+        --chunk-size=*) CHUNK_SIZE="${ARGS[i]#*=}";;
+        --overlap=*) OVERLAP="${ARGS[i]#*=}";;
+    esac
+done
+BATCH_SIZE=${BATCH_SIZE:-1}   # Default to 1 if not specified
+CHUNK_SIZE=${CHUNK_SIZE:-512} # batch_embedder default
+OVERLAP=${OVERLAP:-50}        # batch_embedder default
 
 # Determine status
 if [ $FAILURES -eq 0 ]; then
@@ -203,7 +225,7 @@ fi
 
 # Append run data
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
-echo "$TIMESTAMP,$INPUT_DIR,$NUM_INSTANCES,$WORKERS_PER_INSTANCE,$((NUM_INSTANCES * WORKERS_PER_INSTANCE)),$BATCH_SIZE,$TOTAL_DOCS,$TOTAL_CHUNKS,$MAX_TIME,$DOCS_PER_SEC,$CHUNKS_PER_SEC,$TOTAL_API_CALLS,$TOTAL_API_TIME,$AVG_API_LATENCY,$STATUS" >> "$HISTORY_FILE"
+echo "$TIMESTAMP,$INPUT_DIR,$NUM_INSTANCES,$WORKERS_PER_INSTANCE,$((NUM_INSTANCES * WORKERS_PER_INSTANCE)),$BATCH_SIZE,$CHUNK_SIZE,$OVERLAP,$TOTAL_DOCS,$TOTAL_CHUNKS,$MAX_TIME,$DOCS_PER_SEC,$CHUNKS_PER_SEC,$TOTAL_API_CALLS,$TOTAL_API_TIME,$AVG_API_LATENCY,$STATUS" >> "$HISTORY_FILE"
 
 echo ""
 echo "📊 Run logged to $HISTORY_FILE"

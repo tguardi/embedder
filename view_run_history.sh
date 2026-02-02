@@ -19,6 +19,19 @@ fi
 MODE="${1:---last}"
 ARG="${2:-10}"
 
+HEADER=$(head -1 "$HISTORY_FILE")
+if echo "$HEADER" | grep -q "chunk_size"; then
+    HAS_CHUNK=1
+    COL_DOCS_PER_SEC=12
+    COL_CHUNKS_PER_SEC=13
+    COL_API_LATENCY=16
+else
+    HAS_CHUNK=0
+    COL_DOCS_PER_SEC=10
+    COL_CHUNKS_PER_SEC=11
+    COL_API_LATENCY=14
+fi
+
 case "$MODE" in
     --all)
         echo "========================================================================"
@@ -44,7 +57,7 @@ case "$MODE" in
         echo "TOP 5 FASTEST RUNS (by docs/sec)"
         echo "========================================================================"
         echo ""
-        (head -1 "$HISTORY_FILE"; tail -n +2 "$HISTORY_FILE" | sort -t',' -k10 -rn | head -5) | column -t -s ','
+        (head -1 "$HISTORY_FILE"; tail -n +2 "$HISTORY_FILE" | sort -t',' -k${COL_DOCS_PER_SEC} -rn | head -5) | column -t -s ','
         ;;
 
     --csv)
@@ -58,16 +71,24 @@ case "$MODE" in
         echo ""
         echo "Configuration Performance Summary:"
         echo ""
-        tail -n +2 "$HISTORY_FILE" | awk -F',' '
+        tail -n +2 "$HISTORY_FILE" | awk -F',' \
+        -v docs_col="$COL_DOCS_PER_SEC" \
+        -v chunks_col="$COL_CHUNKS_PER_SEC" \
+        -v api_col="$COL_API_LATENCY" \
+        -v has_chunk="$HAS_CHUNK" '
         {
-            config = $3 "x" $4 "xB" $6
-            if (docs_per_sec[config] == "" || $10 > docs_per_sec[config]) {
+            if (has_chunk == 1) {
+                config = $3 "x" $4 "xB" $6 "xC" $7 "xO" $8
+            } else {
+                config = $3 "x" $4 "xB" $6
+            }
+            if (docs_per_sec[config] == "" || $(docs_col) > docs_per_sec[config]) {
                 instances[config] = $3
                 workers[config] = $4
                 batch[config] = $6
-                docs_per_sec[config] = $10
-                chunks_per_sec[config] = $11
-                api_latency[config] = $14
+                docs_per_sec[config] = $(docs_col)
+                chunks_per_sec[config] = $(chunks_col)
+                api_latency[config] = $(api_col)
             }
         }
         END {
@@ -96,7 +117,7 @@ case "$MODE" in
         echo ""
 
         # Calculate stats using awk
-        tail -n +2 "$HISTORY_FILE" | grep "success" | awk -F',' '
+        tail -n +2 "$HISTORY_FILE" | grep "success" | awk -F',' -v docs_col="$COL_DOCS_PER_SEC" '
         BEGIN {
             max_docs_sec = 0
             min_docs_sec = 999999
@@ -104,8 +125,8 @@ case "$MODE" in
             count = 0
         }
         {
-            if ($10 != "" && $10 > 0) {
-                docs_sec = $10
+            if ($(docs_col) != "" && $(docs_col) > 0) {
+                docs_sec = $(docs_col)
                 sum_docs_sec += docs_sec
                 if (docs_sec > max_docs_sec) max_docs_sec = docs_sec
                 if (docs_sec < min_docs_sec) min_docs_sec = docs_sec
