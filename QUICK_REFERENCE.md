@@ -1,10 +1,19 @@
 # Quick Reference Card
 
 ## 1. Generate Test Data
+
+**Option A: Synthetic data (fast)**
 ```bash
 ./generate_1k_batch.sh batch_1k
 ```
 Creates 1000 test documents in ~5 seconds.
+
+**Option B: Real Fed speeches (realistic)**
+```bash
+./setup_scraper.sh  # First time only
+python3 scrape_fed_speeches.py --max-speeches 1000 --output-dir batch_fed_speeches
+```
+Scrapes 1000 Federal Reserve speeches (~20-30 minutes).
 
 ## 2. Run Benchmark
 ```bash

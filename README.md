@@ -244,9 +244,19 @@ python batch_embedder.py INPUT_DIR \
 
 ### Generate Test Data
 
+**Option 1: Synthetic banking documents (fast)**
 ```bash
 # Generate 1000 test documents for benchmarking (~5 seconds)
 ./generate_1k_batch.sh batch_1k
+```
+
+**Option 2: Real Federal Reserve speeches (realistic)**
+```bash
+# Install dependencies (first time only)
+./setup_scraper.sh
+
+# Scrape 1000 recent Fed speeches (~20-30 minutes with rate limiting)
+python3 scrape_fed_speeches.py --max-speeches 1000 --output-dir batch_fed_speeches
 ```
 
 ### Run Parallel Benchmarks
