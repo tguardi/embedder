@@ -23,6 +23,7 @@ from typing import List, Dict, Optional
 
 import requests
 from bs4 import BeautifulSoup
+import trafilatura
 
 # Base URL for Federal Reserve
 BASE_URL = "https://www.federalreserve.gov"
@@ -87,81 +88,21 @@ def fetch_year_speeches(year: int) -> List[Dict]:
 
 
 def fetch_speech_content(speech_info: Dict) -> Optional[str]:
-    """Fetch the full text content of a speech."""
+    """Fetch and extract the full text content of a speech using trafilatura."""
     url = speech_info['url']
 
     try:
-        response = requests.get(url, headers=HEADERS, timeout=30)
-        response.raise_for_status()
-    except requests.RequestException as e:
+        downloaded = trafilatura.fetch_url(url)
+        if not downloaded:
+            print(f"  Error: trafilatura failed to download {url}")
+            return None
+
+        content = trafilatura.extract(downloaded)
+        return content
+
+    except Exception as e:
         print(f"  Error fetching speech {url}: {e}")
         return None
-
-    soup = BeautifulSoup(response.content, 'html.parser')
-
-    # Remove script, style, and navigation elements
-    for element in soup.find_all(['script', 'style', 'nav', 'header', 'footer']):
-        element.decompose()
-
-    # Try multiple strategies to find the main content
-    content_div = None
-
-    # Strategy 1: Look for div with ID 'article'
-    content_div = soup.find('div', id='article')
-
-    # Strategy 2: Look for div with specific content classes
-    if not content_div:
-        content_div = soup.find('div', class_='col-xs-12 col-sm-8 col-md-8')
-
-    # Strategy 3: Look for common content container classes
-    if not content_div:
-        for class_pattern in [r'col-xs-12', r'content', r'main']:
-            content_div = soup.find('div', class_=re.compile(class_pattern))
-            if content_div:
-                break
-
-    # Strategy 4: Look for main or article tags
-    if not content_div:
-        content_div = soup.find('main') or soup.find('article')
-
-    # Strategy 5: Fall back to body
-    if not content_div:
-        content_div = soup.find('body')
-
-    if not content_div:
-        return None
-
-    # Extract text content
-    # Get all text, preserving paragraph breaks
-    text_content = content_div.get_text(separator='\n\n', strip=True)
-
-    # Clean up excessive whitespace and blank lines
-    lines = []
-    for line in text_content.split('\n'):
-        line = line.strip()
-        if line and len(line) > 15:  # Skip very short lines (navigation, etc.)
-            lines.append(line)
-
-    content = '\n\n'.join(lines)
-
-    # Remove common navigation text patterns
-    skip_patterns = [
-        r'^Home\s*$',
-        r'^Skip to main content\s*$',
-        r'^Accessibility\s*$',
-        r'^Federal Reserve Board\s*$',
-        r'^News & Events\s*$',
-        r'^Speeches\s*$',
-    ]
-
-    for pattern in skip_patterns:
-        content = re.sub(pattern, '', content, flags=re.MULTILINE)
-
-    # Clean up excessive whitespace again
-    content = re.sub(r'\n{3,}', '\n\n', content)
-    content = content.strip()
-
-    return content
 
 
 def main():
